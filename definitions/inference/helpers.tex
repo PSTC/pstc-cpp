@@ -1,0 +1,17 @@
+\begin{figure}
+\centering
+\small
+
+\begin{minted}[escapeinside=<>,mathescape=true]{ocaml}
+let RecCheckLoop <$C_2$> <$V_{\text{outer}}$> <$\langle \rho_k \rangle$> <$\langle t_k \rangle$> <$\langle e_k \rangle$> =
+  try let pv<$_k$> = <$\texttt{PV}$> <${t_k}$> in
+      let sv<$_k$> = (<$V_{\text{outer}}$> <$\cup$> <$\texttt{SV}$> <$t_k$> <$\cup$> <$\texttt{SV}$> <$e_k$>) <$\setminus$> pv<$_k$> in
+      let <$C_{3k}$> = RecCheck <$C_2$> <$\rho_k$> pv<$_k$> sv<$_k$>
+      in <$\bigcup\limits_k C_{3k}$>
+  with RecCheckFail <$V$> ->
+      <$\mathcal{P}$> := <$\mathcal{P} \setminus V$>; RecCheckLoop <$C_2$> <$\langle \rho_k \rangle$> <$\langle t_k \rangle$> <$\langle e_k \rangle$>
+\end{minted}
+
+\caption{Pseudocode implementation of \textsc{RecCheckLoop}}
+\label{fig:helpers}
+\end{figure}

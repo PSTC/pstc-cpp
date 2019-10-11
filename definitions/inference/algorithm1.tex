@@ -1,0 +1,159 @@
+\begin{figure*}[p!]
+\centering
+\small
+
+\begin{tabular}{l c}
+     \AxiomC{}
+    \RightLabel{(a-var-assum)}
+    \UnaryInfC{$\cgg \vdash x \rightsquigarrow C, x \Rightarrow \Gamma(x)$}
+    \DisplayProof
+    &
+    \AxiomC{$e : t = \Gamma(x)$}
+    \AxiomC{$\vec{\upsilon} = \fresh{\| \SA{e} \|}$}
+    \RightLabel{(a-var-def)}
+    \BinaryInfC{$\cgg \vdash x \rightsquigarrow C, x^{\vec{\upsilon}} \Rightarrow t$}
+    \DisplayProof
+    \\
+    \\
+    \AxiomC{}
+    \RightLabel{(a-const-assum)}
+    \UnaryInfC{$\cgg \vdash x \rightsquigarrow C, x \Rightarrow \Gamma_G(x)$}
+    \DisplayProof
+    &
+    \AxiomC{$e : t = \Gamma_G(x)$}
+    \AxiomC{$\vec{\upsilon} = \fresh{\| \SA{e} \|}$}
+    \AxiomC{$\upsilon = \fresh{1}$}
+    \RightLabel{(a-const-def)}
+    \TrinaryInfC{$\cgg \vdash x \rightsquigarrow C, x^{\vec{\upsilon}} \Rightarrow t[\iota \coloneqq \upsilon]$}
+    \DisplayProof
+\end{tabular}
+
+\hfill\break
+
+\AxiomC{}
+\RightLabel{(a-univ)}
+\UnaryInfC{$\cgg \vdash \omega \rightsquigarrow C, \omega \Rightarrow \axiom{\omega}$}
+\DisplayProof
+\qquad
+\AxiomC{$\cgg \vdash e^\circ \rightsquigarrow C_1, e \Rightarrow t$}
+\RightLabel{(a-check)}
+\UnaryInfC{$\cgg \vdash e^\circ \Leftarrow u \rightsquigarrow C_1 \cup t \preceq u, e$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash t^\circ \rightsquigarrow C_1, t \Rightarrow^* \omega_1$}
+\AxiomC{$C_1, \Gamma_G, \Gamma(x:t) \vdash u^\circ \rightsquigarrow C_2, u \Rightarrow^* \omega_2$}
+\RightLabel{(a-prod)}
+\BinaryInfC{$\cgg \vdash \Pi x: t^\circ. u^\circ \rightsquigarrow C_2, \Pi x: t. u \Rightarrow \rules{\omega_1}{\omega_2}$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash t^\circ \rightsquigarrow C_1, t \Rightarrow^* \omega$}
+\AxiomC{$C_1, \Gamma_G, \Gamma(x:t) \vdash e^\circ \rightsquigarrow C_2, e \Rightarrow u$}
+\RightLabel{(a-abs)}
+\BinaryInfC{$\cgg \vdash \lambda x: t^\circ \coloneqq e^\circ \rightsquigarrow C_2, \lambda x: |t| \coloneqq e \Rightarrow \Pi x:t.u$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash e_1^\circ \rightsquigarrow C_1, e_1 \Rightarrow^* \Pi x:t.u$}
+\AxiomC{$C_1, \Gamma_G, \Gamma \vdash e_2^\circ \Leftarrow t \rightsquigarrow C_2, e_2$}
+\RightLabel{(a-app)}
+\BinaryInfC{$\cgg \vdash e_1^\circ e_2^\circ \rightsquigarrow C_2, e_1 e_2 \Rightarrow u[x \coloneqq e_2]$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash t^\circ \rightsquigarrow C_1, t \Rightarrow^* \omega$}
+\AxiomC{$C_1, \Gamma_G, \Gamma \vdash e_1^\circ \Leftarrow t \rightsquigarrow C_2, e_1$}
+\AxiomC{$C_2, \Gamma_G, \Gamma(x:t \coloneqq e_1) \vdash e_2^\circ \rightsquigarrow C_3, e_2 \Rightarrow u$}
+\RightLabel{(a-let-in)}
+\TrinaryInfC{$\cgg \vdash \letin{x}{t^\circ}{e_1^\circ}{e_2^\circ} \rightsquigarrow C_3, \letin{x}{|t|}{e_1}{e_2} \Rightarrow u[x \coloneqq e_1]$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\upsilon = \fresh{1}$}
+\RightLabel{(a-ind)}
+\UnaryInfC{$\cgg \vdash I_k \rightsquigarrow C, I_k^\upsilon \Rightarrow \indtype{\Sigma}{I_k}$}
+\DisplayProof
+\qquad
+\AxiomC{$\rho = \freshi{1}$}
+\RightLabel{(a-ind-star)}
+\UnaryInfC{$\cgg \vdash I_k^* \rightsquigarrow C, I_k^\rho \Rightarrow \indtype{\Sigma}{I_k}$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\vec{\upsilon} = \fresh{\inds{c_\ell}}$}
+\RightLabel{(a-constr)}
+\UnaryInfC{$\cgg \vdash c_\ell \rightsquigarrow C, c_\ell \Rightarrow \constrtype{\Sigma}{c_\ell}{\vec{\upsilon}}$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash e^\circ \rightsquigarrow C_1, e \Rightarrow^* I_k^s\ \vec{p}\ \vec{a} \qquad C_1, \Gamma_G, \Gamma \vdash p^\circ \rightsquigarrow C_2, p \Rightarrow t_p$}
+\noLine
+\UnaryInfC{$\Pi \_ : \omega_k = \indtype{\Sigma}{I_k} \qquad (\_, \omega) = \decompose{t_p}{\|\Delta_{a_k}\| + 1} \qquad \elim{\omega_k}{\omega}{I_k} \qquad \langle \upsilon_i \rangle = \fresh{\inds{I_k}}$}
+\noLine
+\UnaryInfC{$C_3 = C_2 \cup \set{\hat{\upsilon}_k \sqsubseteq s} \cup (t_p \preceq \motivetype{\Sigma}{\vec{p}}{\omega}{I_k^s}) \qquad C_3, \Gamma_G, \Gamma \vdash e^\circ_j \Leftarrow \branchtype{\Sigma}{\vec{p}}{c_j}{\langle \upsilon_i \rangle}{p} \rightsquigarrow C_{4j}, e_j$}
+\RightLabel{(a-case)}
+\UnaryInfC{$\cgg \vdash \caseof{p^\circ}{e^\circ}{c_j}{e_j^\circ} \rightsquigarrow \bigcup\limits_j C_{4j}, \caseof{|p|}{e}{c_j}{e_j} \Rightarrow p\vec{a}e$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad V_{\text{outer}} = \mathcal{V}$}
+\noLine
+\UnaryInfC{$\cgg \vdash \setrecstars{t_k^\circ}{\vec{n}(k)} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \omega$}
+\noLine
+\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma(\langle f_k : t_k) \vdash e_k^\circ \Leftarrow  \shift{t_k} \rightsquigarrow C_{2k}, e_k$}
+\noLine
+\UnaryInfC{$C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{V_{\text{outer}}}{\langle \getrecvar{t_k}{\vec{n}(k)} \rangle}{\langle t_k \rangle}{\langle e_k \rangle}$}
+\RightLabel{(a-fix)}
+\UnaryInfC{$\cgg \vdash \fix{\vec{n}, m}{f_k}{t_k^\circ}{e_k} \rightsquigarrow C_4, \fix{\vec{n}, m}{f_k}{|t_k|^*}{e_k} \Rightarrow t_m$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad V_{\text{outer}} = \mathcal{V}$}
+\noLine
+\UnaryInfC{$\cgg \vdash \setcorecstars{t_k^\circ} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \omega$}
+\noLine
+\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma(\langle f_k : t_k) \vdash e_k^\circ \Leftarrow \shift{t_k} \rightsquigarrow C_{2k}, e_k$}
+\noLine
+\UnaryInfC{$C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{V_{\text{outer}}}{\langle \getcorecvar{t_k} \rangle}{\langle t_k \rangle}{\langle e_k \rangle}$}
+\RightLabel{(a-cofix)}
+\UnaryInfC{$\cgg \vdash \cofix{m}{f_k}{t_k^\circ}{e_k} \rightsquigarrow C_4, \cofix{m}{f_k}{|t_k|^*}{e_k} \Rightarrow t_m$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{}
+\RightLabel{(a-global-empty)}
+\UnaryInfC{$[] \rightsquigarrow []$}
+\DisplayProof
+\qquad
+\AxiomC{$\Gamma_G^\circ \rightsquigarrow \Gamma_G$}
+\AxiomC{$\emptyset, \Gamma_G, [] \vdash t^\circ \rightsquigarrow \_, t \Rightarrow \omega$}
+\RightLabel{(a-global-assum)}
+\BinaryInfC{$\Gamma_G^\circ(\text{Assum}\ x:t^\circ) \rightsquigarrow \Gamma_G(\text{Assum}\ x:|t|^\infty)$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\Gamma_G^\circ \rightsquigarrow \Gamma_G \qquad \emptyset, \Gamma_G, [] \vdash t^\circ \rightsquigarrow C_1, t \Rightarrow \omega$}
+\noLine
+\UnaryInfC{$C_1, \Gamma_G, [] \vdash e^\circ \rightsquigarrow \_, e \Rightarrow u \qquad \_ = u \preceq t \qquad \mathcal{P} \coloneqq \mathcal{P} \cup \getposvars{t}{u}$}
+\RightLabel{(a-global-def)}
+\UnaryInfC{$\Gamma_G^\circ(\text{Def}\ x:t^\circ \coloneqq e^\circ) \rightsquigarrow \Gamma_G(\text{Def}\ x:|t|^\iota \coloneqq |e|^\infty)$}
+\DisplayProof
+
+\caption{Size inference algorithm}
+\label{fig:algorithm1}
+\end{figure*}
+
+% Use this to get rid of the page number that overlaps with the rules
+% \thispagestyle{empty}

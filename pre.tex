@@ -1,0 +1,98 @@
+\title{Endowing Coq with Sized Types}
+\title{Coq Sized Types Matter}
+\title{Sizing Up Coq's Types}
+\title{A Bigger, Sized Coq}
+\title{SuccCoq: Successor Sized Types in the Calculus of (Co)Inductive Constructions}
+\title{The Rise of Coq with Sized Types}
+\title{Practical Sized Typing for Coq}
+
+\author{Jonathan Chan}
+\orcid{0000-0003-0830-3180}
+\affiliation{University of British Columbia}
+\email{jon@alumni.ubc.ca}
+
+\author{William J. Bowman}
+\affiliation{University of British Columbia}
+\email{wilbowma@cs.ubc.ca}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{stmaryrd}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage{bussproofs}
+\usepackage{cuted}
+\usepackage{hyphenat}
+\usepackage{stackengine}
+\usepackage{xspace}
+\usepackage[shortcuts]{extdash}
+\usepackage{soul}
+\usepackage{enumitem}
+\setlist{leftmargin=1em}
+
+\hypersetup{colorlinks=true}
+
+% langs
+\newcommand{\CIChat}{CIC$\widehat{~}$\xspace}
+\newcommand{\CIChatbar}{CIC$\widehat{\text{\underline{\:\:}}}$\xspace}
+\newcommand{\Fhat}{F$\widehat{~}$\xspace}
+\newcommand{\CIChatl}{CIC$\widehat{_l}$\xspace}
+\newcommand{\CChatomega}{CC$\widehat{\omega}$\xspace}
+\newcommand{\CIChatsub}{CIC$\widehat{_\sqsubseteq}$\xspace}
+% metafunctions (for math envs)
+\newcommand{\dom}[1]{\text{dom}(#1)}
+\newcommand{\SV}[1]{\text{SV}(#1)}
+\newcommand{\SA}[1]{\text{SA}(#1)}
+\newcommand{\WF}[1]{\text{WF}(#1)}
+\newcommand{\whnf}[1]{\textsc{whnf}(#1)}
+\newcommand{\fresh}[1]{\textsc{fresh}(#1)}
+\newcommand{\freshi}[1]{\textsc{fresh*}(#1)}
+\newcommand{\axiom}[1]{\textsc{axiom}(#1)}
+\newcommand{\rules}[2]{\textsc{rule}(#1, #2)}
+\newcommand{\elim}[3]{\textsc{elim}(#1, #2, #3)}
+\newcommand{\inds}[1]{\textsc{inds}(#1)}
+\newcommand{\indtype}[2]{\textsc{indType}(#1, #2)}
+\newcommand{\constrtype}[3]{\textsc{constrType}(#1, #2, #3)}
+\newcommand{\motivetype}[4]{\textsc{motiveType}(#1, #2, #3, #4)}
+\newcommand{\branchtype}[5]{\textsc{branchType}(#1, #2, #3, #4, #5)}
+\newcommand{\indsig}[1]{\textsc{indSig}(#1)}
+\newcommand{\constrsig}[1]{\textsc{constrSig}(#1)}
+\newcommand{\decompose}[2]{\textsc{decompose}(#1, #2)}
+\newcommand{\shift}[1]{\textsc{shift}(#1)}
+\newcommand{\setrecstars}[2]{\textsc{setRecStars}(#1, #2)}
+\newcommand{\setcorecstars}[1]{\textsc{setCorecStars}(#1)}
+\newcommand{\getrecvar}[2]{\textsc{getRecVar}(#1, #2)}
+\newcommand{\getcorecvar}[1]{\textsc{getCorecVar}(#1)}
+\newcommand{\getposvars}[2]{\textsc{getPosVars}(#1, #2)}
+\newcommand{\RecCheckLoop}[5]{\textsc{RecCheckLoop}(#1, #2, #3, #4, #5)}
+% terms (for math envs)
+\newcommand{\Prop}{\text{Prop}}
+\newcommand{\Set}{\text{Set}}
+\newcommand{\Type}[1]{\text{Type}_{#1}}
+\newcommand{\letin}[4]{\text{let}\ #1 : #2 \coloneqq #3\ \text{in}\ #4}
+\newcommand{\caseof}[4]{\text{case}_{#1}\ #2\ \text{of}\ \langle #3 \Rightarrow #4 \rangle}
+\newcommand{\fix}[4]{\text{fix}_{#1}\ \langle #2 : #3 \coloneqq #4 \rangle}
+\newcommand{\cofix}[4]{\text{cofix}_{#1}\ \langle #2 : #3 \coloneqq #4 \rangle}
+% other (for math envs)
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\sgg}{\Sigma, \Gamma_G, \Gamma}
+\newcommand{\cgg}{C, \Gamma_G, \Gamma}
+\newcommand{\pos}{\ \text{pos}\ }
+\renewcommand{\neg}{\ \text{neg}\ }
+% hyphenation
+\newcommand{\coinductive}{(co)\-inductive\xspace}
+\newcommand{\corecursive}{(co)\-recursive\xspace}
+\newcommand{\cofixpoint}{(co)\-fix\-point\xspace}
+\newcommand{\cofixpoints}{(co)\-fix\-points\xspace}
+% language name ideas
+\newcommand{\lang}{}
+\renewcommand{\lang}{CoqS}
+\renewcommand{\lang}{SuccCoq}
+\renewcommand{\lang}{Coqqus}
+\renewcommand{\lang}{Poule}
+\renewcommand{\lang}{Hog}
+\renewcommand{\lang}{CIC$\widehat{*}$\xspace}
+
+\hyphenation{para-metrized}
+\hyphenation{re-duc-tion}

@@ -1,0 +1,10 @@
+\begin{align*}
+\text{SV}             & : T \to \mathcal{P}(\mathcal{V}) && \text{returns the set of stage variables in the given term} \\
+\lfloor.\rfloor       & : S \textbackslash \set{\infty} \to \mathcal{V}  && \text{returns the stage variable in the given finite stage annotation} \\
+\|.\|                 & : * \to \mathbb{N}^0 && \text{returns the cardinality of the given argument (e.g. vector length, set size, etc.)} \\
+\llbracket.\rrbracket & : T \to \mathbb{N}^0 && \text{counts the number of stage annotations} \\
+|.|          & : T \to T^\circ  && \text{erases sized terms to bare terms} \\
+|.|^\infty   & : T \to T^\infty && \text{erases sized terms to full terms} \\
+|.|^\upsilon & : T \to T^*      && \text{erases stage annotation with variable $\upsilon$ to $*$ and all others to bare} \\
+|.|^\iota    & : T \to T^\iota  && \text{erases stage annotations with variables in $\mathcal{V}^\iota$ to $\iota$ and all others to $\infty$} \\
+\end{align*}

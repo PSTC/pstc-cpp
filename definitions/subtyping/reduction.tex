@@ -1,0 +1,18 @@
+\begin{figure}
+\centering
+\AxiomC{$\WF{\Sigma, \Gamma_G, \Gamma}$}
+\AxiomC{$(x : t \coloneqq e) \in \Gamma$}
+\RightLabel{($\delta$-local)}
+\BinaryInfC{$\Sigma, \Gamma_G, \Gamma \vdash x^{\vec{s}} \rhd_\delta |e|^\infty[\vec{\infty} \coloneqq \vec{s}]$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\WF{\Sigma, \Gamma_G, \Gamma}$}
+\AxiomC{$(\text{Def}\ x : t \coloneqq e) \in \Gamma_G$}
+\RightLabel{($\Delta$-global)}
+\BinaryInfC{$\Sigma, \Gamma_G, \Gamma \vdash x^{\vec{s}} \rhd_\Delta e[\vec{\infty} \coloneqq \vec{s}]$}
+\DisplayProof
+\caption{Reduction rules for local and global definitions}
+\label{fig:reduction}
+\end{figure}

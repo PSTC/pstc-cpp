@@ -1,0 +1,16 @@
+\begin{figure}
+\begin{align*}
+\dom{\Delta} &\mapsto \vec{x}                               &\text{domain of assum. env.} \\
+e \vec{a}    &\mapsto (((e a_1) \dots) a_n)                 &\text{application to vectors} \\
+t \to u      &\mapsto \Pi\_: t. u                           &\text{nondependent product} \\
+(x: t) \to u &\mapsto \Pi x: t. u                           &\text{dependent product} \\
+\Pi\Delta.t  &\mapsto \Pi x_1: t_1. \dots \Pi x_n: t_n. t   &\text{product from assums.} \\
+t[\langle x_i \coloneqq e_i \rangle] &\mapsto t[x_1 \coloneqq e_1]\dots[x_n \coloneqq e_n] &\text{vector substitution} \\
+t[\vec{x} \coloneqq \vec{e}]         &\mapsto t[x_1 \coloneqq e_1]\dots[x_n \coloneqq e_n] &\text{vector substitution} \\
+\SV{e_1, e_2} &\mapsto \SV{e_1} \cup \SV{e_2}               &\text{stage vars. of terms} \\
+\textit{where}\ \vec{a} &= \langle a_1, \dots, a_n \rangle  \\
+\Delta  &= (x_1: t_1) \dots (x_n: t_n)
+\end{align*}
+\caption{Syntactic sugar of terms and metafunctions}
+\label{fig:sugar}
+\end{figure}

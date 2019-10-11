@@ -1,0 +1,28 @@
+\begin{figure*}
+\centering
+
+\AxiomC{}
+\RightLabel{(a-global-empty)}
+\UnaryInfC{$[] \rightsquigarrow []$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\Gamma_G^\circ \rightsquigarrow \Gamma_G$}
+\AxiomC{$\emptyset, \Gamma_G, [] \vdash t^\circ \rightsquigarrow \_, t \Rightarrow \omega$}
+\RightLabel{(a-global-assum)}
+\BinaryInfC{$\Gamma_G^\circ(\text{Assum}\ x:t^\circ) \rightsquigarrow \Gamma_G(\text{Assum}\ x:|t|^\infty)$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\Gamma_G^\circ \rightsquigarrow \Gamma_G \qquad \emptyset, \Gamma_G, [] \vdash t^\circ \rightsquigarrow C_1, t \Rightarrow \omega$}
+\noLine
+\UnaryInfC{$C_1, \Gamma_G, [] \vdash e^\circ \rightsquigarrow \_, e \Rightarrow u \qquad \_ = u \preceq t \qquad \mathcal{P} \coloneqq \mathcal{P} \cup \getposvars{t}{u}$}
+\RightLabel{(a-global-def)}
+\UnaryInfC{$\Gamma_G^\circ(\text{Def}\ x:t^\circ \coloneqq e^\circ) \rightsquigarrow \Gamma_G(\text{Def}\ x:|t|^\iota \coloneqq |e|^\infty)$}
+\DisplayProof
+
+\caption{Size inference algorithm (continued)}
+\label{fig:algorithm2}
+\end{figure*}

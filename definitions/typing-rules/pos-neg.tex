@@ -1,0 +1,56 @@
+\begin{figure}
+\centering
+
+\AxiomC{$\upsilon \notin \SV{t}$}
+\UnaryInfC{$\upsilon \pos t$}
+\DisplayProof
+\quad
+\AxiomC{$\upsilon \notin \SV{t}$}
+\UnaryInfC{$\upsilon \neg t$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\upsilon \neg t$}
+\AxiomC{$\upsilon \pos u$}
+\BinaryInfC{$\upsilon \pos \Pi x:t.u$}
+\DisplayProof
+\quad
+\AxiomC{$\upsilon \pos t$}
+\AxiomC{$\upsilon \neg u$}
+\BinaryInfC{$\upsilon \neg \Pi x:t.u$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\upsilon \notin \SV{\vec{a}}$}
+\AxiomC{$I\ \text{inductive}$}
+\BinaryInfC{$\upsilon \pos I^s \vec{a}$}
+\DisplayProof
+
+\hfill
+
+\AxiomC{$\upsilon \notin \SV{\vec{a}}$}
+\AxiomC{$I\ \text{coinductive}$}
+\BinaryInfC{$\upsilon \neg I^s \vec{a}$}
+\DisplayProof
+
+\hfill\break
+
+\AxiomC{$\upsilon \notin \SV{\vec{a}}$}
+\AxiomC{$I\ \text{inductive}$}
+\AxiomC{$\upsilon \neq \lfloor s \rfloor$}
+\TrinaryInfC{$\upsilon \neg I^s \vec{a}$}
+\DisplayProof
+
+\hfill
+
+\AxiomC{$\upsilon \notin \SV{\vec{a}}$}
+\AxiomC{$I\ \text{coinductive}$}
+\AxiomC{$\upsilon \neq \lfloor s \rfloor$}
+\TrinaryInfC{$\upsilon \pos I^s \vec{a}$}
+\DisplayProof
+
+\caption{Positivity/negativity of stage variables in terms}
+\label{fig:posneg}
+\end{figure}
