@@ -1,4 +1,4 @@
-\begin{figure*}[h]
+\begin{figure*}
 \centering
 
 \hfill\break
@@ -6,58 +6,58 @@
 \begin{tabular}{c c}
     \AxiomC{$\WF{\sgg}$}
     \AxiomC{$(x:t) \in \Gamma$}
-    \RightLabel{(var-assum)}
+    \RightLabel{\defrule{var-assum}}
     \BinaryInfC{$\sgg \vdash x:t$}
     \DisplayProof
     &
     \AxiomC{$\WF{\sgg}$}
     \AxiomC{$(x:t \coloneqq e) \in \Gamma$}
-    \AxiomC{$\|\vec{s}\| = \|\SA{e}\|$}
-    \RightLabel{(var-def)}
-    \TrinaryInfC{$\sgg \vdash x^{\vec{s}} : t$}
+    \AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
+    \RightLabel{\defrule{var-def}}
+    \TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t$}
     \DisplayProof
     \\
     \\
     \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(\text{Assum}\ x:t) \in \Gamma_G$}
-    \RightLabel{(const-assum)}
+    \AxiomC{$(\text{Assum}\ x:t.) \in \Gamma_G$}
+    \RightLabel{\defrule{const-assum}}
     \BinaryInfC{$\sgg \vdash x:t$}
     \DisplayProof
     &
     \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(\text{Def}\ x:t \coloneqq e) \in \Gamma_G$}
-    \AxiomC{$||\vec{s}\| = \|\SA{e}\|$}
-    \RightLabel{(const-def)}
-    \TrinaryInfC{$\sgg \vdash x^{\vec{s}} : t[\iota \coloneqq s]$}
+    \AxiomC{$(\text{Def}\ x:t \coloneqq e.) \in \Gamma_G$}
+    \AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
+    \RightLabel{\defrule{const-def}}
+    \TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t[\iota \coloneqq s]$}
     \DisplayProof
 \end{tabular}
 
 \hfill\break
 
 \AxiomC{$\WF{\sgg}$}
-\AxiomC{$(\omega_1, \omega_2) \in \text{Axioms}$}
-\RightLabel{(univ)}
-\BinaryInfC{$\sgg \vdash \omega_1 : \omega_2$}
+\AxiomC{$(\varw_1, \varw_2) \in \text{Axioms}$}
+\RightLabel{\defrule{univ}}
+\BinaryInfC{$\sgg \vdash \varw_1 : \varw_2$}
 \DisplayProof
 \qquad
 \AxiomC{$\sgg \vdash e:t$}
-\AxiomC{$u:\omega$}
+\AxiomC{$u:\varw$}
 \AxiomC{$t \leq u$}
-\RightLabel{(conv)}
+\RightLabel{\defrule{conv}}
 \TrinaryInfC{$\sgg \vdash e:u$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\sgg \vdash t : \omega_1$}
-\AxiomC{$\sgg (x:t) \vdash u : \omega_2$}
-\AxiomC{$(\omega_1, \omega_2, \omega_3) \in \text{Rules}$}
-\RightLabel{(prod)}
-\TrinaryInfC{$\sgg \vdash \Pi x:t.u : \omega_3$}
+\AxiomC{$\sgg \vdash t : \varw_1$}
+\AxiomC{$\sgg (x:t) \vdash u : \varw_2$}
+\AxiomC{$(\varw_1, \varw_2, \varw_3) \in \text{Rules}$}
+\RightLabel{\defrule{prod}}
+\TrinaryInfC{$\sgg \vdash \Pi x:t.u : \varw_3$}
 \DisplayProof
 \qquad
 \AxiomC{$\sgg (x:t) \vdash e:u$}
-\RightLabel{(abs)}
+\RightLabel{\defrule{abs}}
 \UnaryInfC{$\sgg \vdash \lambda x:|t|.e : \Pi x:t.u$}
 \DisplayProof
 
@@ -65,61 +65,57 @@
 
 \AxiomC{$\sgg \vdash e_1 : \Pi x:t.u$}
 \AxiomC{$\sgg \vdash e_2 : t$}
-\RightLabel{(app)}
+\RightLabel{\defrule{app}}
 \BinaryInfC{$\sgg \vdash e_1 e_2 : u[x \coloneqq e_2]$}
 \DisplayProof
 \qquad
 \AxiomC{$\sgg \vdash e_1:t$}
 \AxiomC{$\sgg (x:t \coloneqq e_1) \vdash e_2:u$}
-\RightLabel{(let-in)}
+\RightLabel{\defrule{let-in}}
 \BinaryInfC{$\sgg \vdash \letin{x}{|t|}{e_1}{e_2} : u[x \coloneqq e_1]$}
 \DisplayProof
 
 \hfill\break
 
 \AxiomC{$\WF{\sgg}$}
-\RightLabel{(ind)}
+\RightLabel{\defrule{ind}}
 \UnaryInfC{$\sgg \vdash I_k^s : \indtype{\Sigma}{I_k}$}
 \DisplayProof
 \qquad
 \AxiomC{$\WF{\sgg}$}
-\RightLabel{(constr)}
-\UnaryInfC{$\sgg \vdash c_\ell : \constrtype{\Sigma}{c_\ell}{\langle s_i \rangle}$}
+\RightLabel{\defrule{constr}}
+\UnaryInfC{$\sgg \vdash c_\ell : \constrtype{\Sigma}{c_\ell}{\overline{s_i}}$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\sgg \vdash e : I_k^{\hat{s}_k}\ \vec{p}\ \vec{a} \qquad \indtype{\Sigma}{I_k} = \Pi \_ . \omega_k \qquad (\omega_k, \omega, I_k) \in \text{Elims}$}
+\AxiomC{$\sgg \vdash e : I_k^{\hat{s}_k}\ \overline{p}\ \overline{a} \qquad \indtype{\Sigma}{I_k} = \Pi \_ . \varw_k \qquad (\varw_k, \varw, I_k) \in \text{Elims}$}
 \noLine
-\UnaryInfC{$\sgg \vdash p : \motivetype{\Sigma}{\vec{p}}{\omega}{I_k^{\hat{s}_k}} \qquad \sgg \vdash e_j : \branchtype{\Sigma}{\vec{p}}{c_j}{\langle s_i \rangle}{p}$}
-\RightLabel{(case)}
-\UnaryInfC{$\sgg \vdash \caseof{|p|}{e}{c_j}{e_j} : p\vec{a}e$}
+\UnaryInfC{$\sgg \vdash \wp : \motivetype{\Sigma}{\overline{p}}{\varw}{I_k^{\hat{s}_k}} \qquad \sgg \vdash e_j : \branchtype{\Sigma}{\overline{p}}{c_j}{\overline{s_i}}{\wp}$}
+\RightLabel{\defrule{case}}
+\UnaryInfC{$\sgg \vdash \caseof{|\wp|}{e}{c_j}{e_j} : \wp\overline{a}e$}
 \DisplayProof
 
 \hfill\break
 
 \begin{tabular}{c c}
-\small
-\AxiomC{$t_k \approx \Pi \Delta_{k_1} . \Pi x_k : I_k^{\upsilon_k}\ \vec{a}_k. \Pi \Delta_{k_2}. u_k$}
+\hspace{-2em}
+\AxiomC{$t_k \approx \Pi \Delta_{k_1} . \Pi x_k : I_k^{\upsilon_k}\ \overline{a}_k. \Pi \Delta_{k_2}. u_k \qquad \|\Delta_k\| = n_m - 1$}
 \noLine
-\UnaryInfC{$1 \leq m \leq \|\vec{n}\| = \|\langle f_k \rangle\| \qquad \|\Delta_k\| = \vec{n}(m) - 1$}
+\UnaryInfC{$\upsilon_k \pos \Delta_{k_1}, \Delta_{k_2}, u_k \qquad \upsilon_k \notin \SV{\Gamma, \Delta_k, \overline{a}_k, e_k} \qquad \upsilon_k, \lfloor s \rfloor \in \mathcal{P}$}
 \noLine
-\UnaryInfC{$\upsilon_k \pos \Delta_{k_1}, \Delta_{k_2}, u_k \qquad \upsilon_k \notin \SV{\Gamma, \Delta_k, \vec{a}_k, e_k} \qquad \upsilon_k, \lfloor s \rfloor \in \mathcal{P}$}
-\noLine
-\UnaryInfC{$\sgg \vdash t_k : \omega_k \qquad \sgg (\langle f_k : t_k \rangle) \vdash e_k : t_k[\upsilon_k \coloneqq \hat{\upsilon}_k]$}
-\RightLabel{(fix)}
-\UnaryInfC{$\sgg \vdash \fix{\vec{n}, m}{f_k}{|t_k|^*}{e_k} : t_m[\upsilon_m \coloneqq s]$}
+\UnaryInfC{$\sgg \vdash t_k : \varw_k \qquad \sgg \overline{(f_k : t_k)} \vdash e_k : t_k[\upsilon_k \coloneqq \hat{\upsilon}_k]$}
+\RightLabel{\defrule{fix}}
+\UnaryInfC{$\sgg \vdash \fix{\langle n_k \rangle, m}{f_k}{|t_k|^*}{e_k} : t_m[\upsilon_m \coloneqq s]$}
 \DisplayProof
 &
-\AxiomC{\vphantom{1ex}}
+\AxiomC{$t_k \approx \Pi \Delta_k . I_k^{\upsilon_k}\ \overline{a}_k$}
 \noLine
-\UnaryInfC{$t_k \approx \Pi \Delta_k . I_k^{\upsilon_k}\ \vec{a}_k \qquad 1 \leq m \leq \|\langle f_k \rangle\|$}
+\UnaryInfC{$\upsilon_k \neg \Delta_k \qquad \upsilon_k \notin \SV{\Gamma, \overline{a}_k, e_k} \qquad \upsilon_k, \lfloor s \rfloor \in \mathcal{P}$}
 \noLine
-\UnaryInfC{$\upsilon_k \neg \Delta_k \qquad \upsilon_k \notin \SV{\Gamma, \vec{a}_k, e_k} \qquad \upsilon_k, \lfloor s \rfloor \in \mathcal{P}$}
-\noLine
-\UnaryInfC{$\sgg \vdash t_k : \omega_k \qquad \sgg (\langle f_k : t_k \rangle) \vdash e_k : t_k[\upsilon_k \coloneqq \hat{\upsilon}_k]$}
-\RightLabel{(cofix)}
-\UnaryInfC{$\sgg \vdash \cofix{m}{f_k}{|t_k|^*}{e_k \rangle} : t_m[\upsilon_m \coloneqq s]$}
+\UnaryInfC{$\sgg \vdash t_k : \varw_k \qquad \sgg \overline{(f_k : t_k)} \vdash e_k : t_k[\upsilon_k \coloneqq \hat{\upsilon}_k]$}
+\RightLabel{\defrule{cofix}}
+\UnaryInfC{$\sgg \vdash \cofix{m}{f_k}{|t_k|^*}{e_k} : t_m[\upsilon_m \coloneqq s]$}
 \DisplayProof
 \end{tabular}
 \caption{Typing rules}

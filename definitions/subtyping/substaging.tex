@@ -1,14 +1,14 @@
 \begin{figure}
 \centering
-\AxiomC{} \RightLabel{(ss-infty)}
+\AxiomC{} \RightLabel{\defrule{ss-infty}}
 \UnaryInfC{$s \sqsubseteq \infty$}
 \DisplayProof
 \quad
-\AxiomC{} \RightLabel{(ss-refl)}
+\AxiomC{} \RightLabel{\defrule{ss-refl}}
 \UnaryInfC{$s \sqsubseteq s$}
 \DisplayProof
 \quad
-\AxiomC{} \RightLabel{(ss-succ)}
+\AxiomC{} \RightLabel{\defrule{ss-succ}}
 \UnaryInfC{$s \sqsubseteq \hat{s}$}
 \DisplayProof
 
@@ -16,7 +16,7 @@
 
 \AxiomC{$s_1 \sqsubseteq s_2$}
 \AxiomC{$s_2 \sqsubseteq s_3$}
-\RightLabel{(ss-trans)}
+\RightLabel{\defrule{ss-trans}}
 \BinaryInfC{$s_1 \sqsubseteq s_3$}
 \DisplayProof
 \caption{Substaging rules}

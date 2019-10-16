@@ -1,4 +1,4 @@
-\documentclass[sigplan,10pt,anonymous,review,nonacm]{acmart}
+\documentclass[sigplan,10pt,anonymous,review]{acmart}
 \settopmatter{printfolios=true,printccs=false,printacmref=false}
 \acmConference[CPP '20]{Certified Programs and Proofs}{20 -- 21 January 2020}{New Orleans, LA, United States}
 
@@ -15,9 +15,7 @@
 
 \maketitle
 
-%\tableofcontents
-
-\section{Introduction}
+\section{Introduction}\label{intro}
 
 Proof assistants based on dependent type theory rely on the termination of recursive functions and the productivity of corecursive functions to ensure two important properties: logical consistency, so that it is not possible to prove false propositions; and decidability of type-checking, so that checking that a program proves a given proposition is decidable.
 
@@ -87,92 +85,101 @@ However, past work on sized types in the Calculus of (Co)\-Inductive Constructio
 \end{itemize}
 
 In this paper, we present \lang, an extension of \CIChat \cite{cic-hat} that resolves these issues without requiring any changes to the surface syntax of Coq. We have also implemented a size inference algorithm based on \lang within Coq's kernel\footnote{
-\iftrue
+\iftrue % TODO: fix this
     Link removed for double-blinding; see anonymous supplementary material.
 \else
     \url{https://github.com/ionathanch/coq/tree/dev}
 \fi
-}. In Section~\ref{typing}, we define the syntax of the language, as well as typing rules that handle both terms and global definitions. We then present in Section~\ref{algorithm} a size inference algorithm from CIC terms to sized \lang terms that details how we annotate the types of \cofixpoints, how we deal with the lack of polarities, and how global definitions are typed, along with the usual termination and productivity checking. Finally, we review and compare with the past work done on sized typing in CIC and related languages in Section~\ref{related}. Additionally, we provide some illustrating examples in Appendix~\ref{examples}, analyzing some of the programs that we are able to type-check, as well classes of programs that we cannot.
+}. In \autoref{typing}, we define the syntax of the language, as well as typing rules that handle both terms and global definitions. We then present in \autoref{algorithm} a size inference algorithm from CIC terms to sized \lang terms that details how we annotate the types of \cofixpoints, how we deal with the lack of polarities, and how global definitions are typed, along with the usual termination and productivity checking. Finally, we review and compare with the past work done on sized typing in CIC and related languages in \autoref{related}. Additionally, we provide some illustrating examples in \autoref{examples}.
 
-\section{\lang}\label{typing}
-In this section, we present the syntax of \lang, a subset of Gallina, the specification language of Coq, with sized types in the style of \CIChat, as well as its typing rules.
+\section{\texorpdfstring{\lang}{CIC\^{}*}}\label{typing}
+In this section, we present \lang, a superset of CIC, the underlying formal language of Coq, and adds to it sized types in the style of \CIChat. Beginning with user-provided code in CIC, we produce sized \lang terms with sized types, check for termination and productivity, and finish by erasing the sizes to produce full \lang terms.
+\begin{equation*}
+    \text{CIC} \xrightarrow{\text{inference}} \text{sized \lang} \xrightarrow{\text{erasure}} \text{full \lang}
+\end{equation*}
+Before we delve into the details of what sized and full terms are, or how inference and erasure are done, we first introduce our notation.
 
 \subsection{Notation}
 
 \input{definitions/notation/terms-general.tex}
 
-Figure~\ref{fig:terms-general} presents the syntax of \lang, whose terms are parametrized over a set of annotations $\alpha$, which indicate the kind of annotations (if any) that appear on the term; details will be provided shortly. We use $\mathcal{X}$ for term variable names, $\mathcal{V}$ for stage variable names, $\mathcal{P}$ for position stage variable names, $\mathcal{I}$ for \coinductive type names, and $\mathcal{C}$ for \coinductive constructor names. (The distinction between $\mathcal{V}$ and $\mathcal{P}$ will be important when typing \cofixpoints and global definitions). $i, j, k, \ell, m, n$ represent strictly positive integers. $\vec{\cdot}$ and $\langle \cdot \rangle$ denote vectors of some construction $\cdot$; literal vectors are written, for example, as $\langle x_1, \dots, x_n \rangle$, or as $\langle x_i \rangle$, where $i$ implicitly runs over the relevant range, usually the range of \coinductive types or constructors. 
+\autoref{fig:terms-general} presents the syntax of \lang, whose terms are parametrized over a set of annotations $\alpha$, which indicate the kind of annotations (if any) that appear on the term; details will be provided shortly. We use $\mathcal{X}$ for term variable names, $\mathcal{V}$ for stage variable names, $\mathcal{P}$ for position stage variable names, $\mathcal{I}$ for \coinductive type names, and $\mathcal{C}$ for \coinductive constructor names. (The distinction between $\mathcal{V}$ and $\mathcal{P}$ will be important when typing \cofixpoints and global definitions). We use the overline $\overline{\,\cdot\,}$ to denote a sequence of some construction: for instance, $\overline{\mathcal{V}}$ is a sequence of stage variables $\mathcal{V} \dots 
+\mathcal{V}$.
+
+In the syntax, the brackets $\langle \cdot \rangle$ delimits a vector of comma-separated constructions. In the grammar of \autoref{fig:terms-general}, the construction inside the brackets denote the pattern of the elements in the vector. For instance, the branches of a case analysis are $\langle C \Rightarrow T, \dots, C \Rightarrow T \rangle$. Finally, we use $i, j, k, \ell, m, n$ to represent strictly positive integers.
 
 \lang resembles the usual CIC, but there are some important differences:
 
 \begin{itemize}
-    \item \textbf{Inductive types} carry annotations that represent their size, e.g. $\texttt{Nat}^\upsilon$. This is the defining feature of sized types.
-    \item \textbf{Variables} may have a vector of annotations, e.g. $x^{\langle \upsilon_1, \upsilon_2 \rangle}$. If the variable is bound to a type containing \coinductive types, we can assign the annotations to each \coinductive type during reduction. For instance, if $x$ were defined by $x : \Set \coloneqq \texttt{List}\ \texttt{Nat}$, then the example would reduce to $\texttt{List}^{\upsilon_1}\ \texttt{Nat}^{\upsilon_2}$. This is important in the typing algorithm in Section~\ref{algorithm}.
-    \item \textbf{Definitions} are explicitly part of the syntax, as opposed to \CIChat and \CIChatbar \cite{cic-hat-bar}. This reflects the actual structure in Coq's kernel.
-    \item We also treat \textbf{mutual \cofixpoints} explicitly. In fixpoints, $\vec{m}$ is a vector of indices indicating the positions of the recursive arguments in each fixpoint type, and $n$ picks out the $n$th \cofixpoint in the vector of mutual definitions.
+    \item \textbf{Inductive types} can carry annotations that represent their size, e.g. $\texttt{Nat}^\upsilon$. This is the defining feature of sized types. They can also have position annotations, e.g. $\texttt{Nat}^*$, which marks the type as that of the recursive argument or return value of a \cofixpoint. This is similar to \texttt{struct} annotations in Coq that specify the structurally-recursive argument.
+    \item \textbf{Variables} may have a vector of annotations, e.g. $x^{\langle \upsilon_1, \upsilon_2 \rangle}$. If the variable is bound to a type containing \coinductive types, we can assign the annotations to each \coinductive type during reduction. For instance, if $x$ were defined by $x : \Set \coloneqq \texttt{List}\ \texttt{Nat}$, then the example would reduce to $\texttt{List}^{\upsilon_1}\ \texttt{Nat}^{\upsilon_2}$. This is important in the typing algorithm in \autoref{algorithm}.
+    \item \textbf{Definitions} are explicitly part of the syntax, in constrast to \CIChat and \CIChatbar \cite{cic-hat-bar}. This reflects the actual structure in Coq's kernel.
+    \item We also treat \textbf{mutual \cofixpoints} explicitly. In fixpoints, $\langle n_k \rangle$ is a vector of indices indicating the positions of the recursive arguments in each fixpoint type, and $m$ picks out the $m$th \cofixpoint in the vector of mutual definitions.
 \end{itemize}
 
-We use the terms \textit{(dependent) product type} and \textit{function type} interchangeably (not to be confused with tuple types, which do not appear in this work). We also refer to definitions as \textit{let-ins} to avoid confusion with local and global definitions in environments.
+We also refer to definitions \cite{ptsdef} as \textit{let-ins} to avoid confusion with local and global definitions in environments.
 
 \begin{comment}
-The simplicity of the size algebra of $S$, with only the successor operation $\widehat{\cdot}$, allows for easy and efficient size inference. We elaborate on this in Section~\ref{algorithm}.
+The simplicity of the size algebra of $S$, with only the successor operation $\widehat{\cdot}$, allows for easy and efficient size inference. We elaborate on this in \autoref{algorithm}.
 \end{comment}
 
 \input{definitions/notation/terms-specific.tex}
 
-Figure~\ref{fig:terms-specific} lists shorthand for the kinds of annotated terms that we will use. Bare terms as used in the grammar are necessary for subject reduction \cite{cic-hat-bar}. Position terms have asterisks to mark the types in \cofixpoint types with at most (for fixpoints) or at least (for cofixpoints) the same size as that of the \corecursive argument. Global terms appear in the types of global definitions, with $\iota$ marking types with preserved sizes. Sized terms are used for termination- and productivity-checking, and full terms appear in the types and terms of global declarations.
+\autoref{fig:terms-specific} lists shorthand for the kinds of annotated terms that we will use. Bare terms as used in the grammar are necessary for subject reduction \cite{cic-hat-bar}. Position terms have asterisks to mark the types in \cofixpoint types with at most (for fixpoints) or at least (for cofixpoints) the same size as that of the \corecursive argument. Global terms appear in the types of global definitions, with $\iota$ marking types with preserved sizes. Sized terms are used for termination- and productivity-checking, and full terms appear in the types and terms of global declarations.
 
-In terms of type-checking, we begin roughly with user-provided code, which is necessarily unannotated, produce annotations during size inference while verifying termination and productivity, and finish by erasing annotations so that size inference can be restricted to individual global declarations, but replace them by full and global annotations so that stage annotations can be substituted in as needed:
+In terms of type-checking and size inference, we begin roughly unannotated user-provided code, produce annotations during size inference while verifying termination and productivity, and finish by erasing annotations so that size inference can be restricted to individual global declarations, but replace them by full and global annotations so that stage annotations can be substituted in as needed:
 \begin{equation*}
     T^\circ \xrightarrow{\text{inference}} T, T^* \xrightarrow{\text{erasure}} T^\infty, T^\iota
 \end{equation*}
 
 \input{definitions/notation/contexts.tex}
 
-Figure~\ref{fig:contexts} illustrates the difference between \textit{local} and \textit{global} declarations and environments, a distinction also in the Coq kernel. Local assumptions and definitions occur in abstractions and let-ins, respectively, while global ones are entire programs. Notice that global declarations have no sized terms: by discarding size information, we can infer sizes locally rather than globally. Local declarations and assumption environments are parametrized over a set of annotations $\alpha$; we will use the same shorthand for environments as for terms.
+\autoref{fig:contexts} illustrates the difference between \textit{local} and \textit{global} declarations and environments, a distinction also in the Coq kernel. Local assumptions and definitions occur in abstractions and let-ins, respectively, while global ones are entire programs. Notice that global declarations have no sized terms: by discarding size information, we can infer sizes locally rather than globally. Local declarations and assumption environments are parametrized over a set of annotations $\alpha$; we will use the same shorthand for environments as for terms.
 
 \input{definitions/notation/metavariables.tex}
 
 \input{definitions/notation/sugar.tex}
 
-Figure~\ref{fig:metavariables} lists the metavariables we use in this work, which may be indexed with by $n, m, i, j, k$, or integer literals. Figure~\ref{fig:sugar} lists some syntactic sugar we will use for writing terms or metafunctions on terms. Note that we use $t[x \coloneqq e]$ to denote the term $t$ with free variable $x$ substituted by expression $e$, and $t[\upsilon \coloneqq s]$ to denote the term $t$ with stage variable $\upsilon$ substituted by stage annotation $s$. Occasionally we will use $t[\vec{\infty} \coloneqq \vec{s}]$ to denote the substitutions of all full annotations in $t$ by the stage annotations in $\vec{s}$ in an arbitrary order.
+\autoref{fig:metavariables} lists the metavariables we use in this work, which may be indexed by $n, m, i, j, k, \ell$, or integer literals. If an index appears under an overline, the sequence it represents spans the range of the index, usually given implicitly; for instance, given $i$ inductive types, $\overline{I_k^{s_k}} = I_1^{s_1} \dots I_i^{s_i}$. Notice that this is \textit{not} the same as an index outside of the underline, such as in $\overline{a}_k$, which represents the $k$th sequence of terms $a$. Indices also appear in syntactic vectors; for example, given a case analysis with $j$ branches, we write $\langle c_\ell \Rightarrow e_\ell \rangle$ for the vector $\langle c_1 \Rightarrow e_1, \dots, c_j \Rightarrow e_j \rangle$.
+
+\autoref{fig:sugar} lists some syntactic sugar we will use for writing terms or metafunctions on terms. Note that we use $t[x \coloneqq e]$ to denote the term $t$ with free variable $x$ substituted by expression $e$, and $t[\upsilon \coloneqq s]$ to denote the term $t$ with stage variable $\upsilon$ substituted by stage annotation $s$. Occasionally we use $t\overline{[\infty_i \coloneqq s_i]}$ to denote the substitutions of all full annotations in $t$ by the stage annotations in $\overline{s_i}$ in an arbitrary order.
 
 \subsubsection{Mutual (Co)Inductive Definitions}
 
 \input{definitions/notation/inductives.tex}
 
-The definition of mutual \coinductive types and their constructors are stored in a global signature $\Sigma$. (Typing judgements will be in the context of all three of $\Sigma, \Gamma_G, \Gamma$.) A mutual \coinductive definition contains:
+The definition of mutual \coinductive types and their constructors are stored in a global signature $\Sigma$. (Typing judgements are parametrized by all three of $\Sigma, \Gamma_G, \Gamma$.) A mutual \coinductive definition contains:
 
 \begin{itemize}
     \item $\Delta_p$, the parameters of the \coinductive types;
     \item $I_i$, their names;
     \item $\Delta_{a_i}$, the indices (or arguments) of these \coinductive types;
-    \item $\omega_i$, their universes;
+    \item $\varw_i$, their universes;
     \item $c_j$, the names of their constructors;
     \item $\Delta_j$, the arguments of these constructors;
     \item $I_{i_j}$, the \coinductive types of the fully-applied constructors; and
-    \item $\vec{t}_j$, the indices of those \coinductive types.
+    \item $\overline{t}_j$, the indices of those \coinductive types.
 \end{itemize}
 
 Often only one \coinductive type $I$ from a mutual definition will be relevant in our discussion, such as when typing a case analysis or a (co)\-fixpoint. In that case, we will use $c_j$ to mean only those constructors where $I_{i_j} = I$, and likewise for other terms indexed by $j$.
 
-As an example, the usual \texttt{Vector} type would be defined in the language as (omitting angle brackets in the syntax for singleton vectors):
+As an example, the usual \texttt{Vector} type would be defined in the language as (omitting brackets in the syntax for singleton vectors):
 \begin{align*}
     (A : \Type{}) &\vdash \text{Vector}\ A: \text{Nat} \to \Type{} \coloneqq \\
         \langle \text{VNil} &: \text{Vector}\ A\ \text{O}, \\
         \text{VCons} &: (n: \text{Nat}) \to A \to \text{Vector}\ A\ n \to \text{Vector}\ A\ (\text{S}\ n) \rangle.
 \end{align*}
-As with mutual (co)\-fixpoints, we treat mutual \coinductive definitions explicitly. Furthermore, as opposed to \CIChat and \CIChatbar, our definitions do not have a vector of polarities. In those works, each parameter has an associated polarity, which tells us whether the parameter is covariant, contravariant, or invariant with respect to the \coinductive type during subtyping. Since Coq's \coinductive definitions do not have polarities, we forgo them so that our type checker can work with existing Coq code without modification. Consequently, we will see that the parameters of \coinductive types are always bivariant in the \texttt{st-app} subtyping rule.
+As with mutual (co)\-fixpoints, we treat mutual \coinductive definitions explicitly. Furthermore, in contrast to \CIChat and \CIChatbar, our definitions do not have a vector of polarities. In those works, each parameter has an associated polarity that tells us whether the parameter is covariant, contravariant, or invariant with respect to the \coinductive type during subtyping. Since Coq's \coinductive definitions do not have polarities, we forgo them so that our type checker can work with existing Coq code without modification. Consequently, we will see that the parameters of \coinductive types are always bivariant in the subtyping \refrule{st-app}.
 
 The well-formedness of \coinductive definitions depends on certain syntactic conditions such as strict positivity. Since we assume definitions in Coq to be valid here, we will not list these conditions. Instead we refer the reader to clauses I1--I9 in \cite{cic-hat-bar}, clauses 1--7 in \cite{cic-hat}, and \cite{coq}.
 
-\subsubsection{Additional Notation}
+\subsubsection{Metafunctions}
 
 We declare the following metafunctions:
 
 \begin{itemize}
-    \item $\text{SV}: T \to \mathbb{P}(\mathcal{V} \cup \mathcal{P})$ returns the set of stage \textit{variables} in the given sized term;
-    \item $\text{SA}: T \to \vec{S}$ returns a vector of the stage \textit{annotations} in the given sized term;
+    \item $\text{SV}: T \to \mathbb{P}(\mathcal{V} \cup \mathcal{P})$ returns the set of stage variables in the given sized term;
+    \item $\text{PV}: T \to \mathbb{P}(\mathcal{P})$ returns the set of position stage variables in the given sized term;
     \item $\lfloor . \rfloor: S \setminus \set{\infty} \to \mathcal{V} \cup \mathcal{P}$ returns the stage variable in the given finite stage annotation;
     \item $\|\cdot\|: * \to \mathbb{N}^0$ returns the cardinality of the given argument (e.g. vector length, set size, etc.);
     \item $\llbracket.\rrbracket: T \to \mathbb{N}^0$ counts the number of stage annotations in the given term;
@@ -195,60 +202,60 @@ We use the following additional expressions to denote membership in contexts and
 
 \input{definitions/subtyping/reduction.tex}
 
-The reduction rules are the usual ones for $\beta$-reduction (function application), $\zeta$-reduction (let-in evaluation), $\iota$-reduction (case expressions), $\mu$-reduction (fixpoint expressions), $\nu$\-/reduction (cofixpoint expressions), $\delta$-reduction (local definitions), $\Delta$-reduction (global definitions), and $\eta$-equivalence (adding abstractions over functions). We define convertibility ($\approx$) as the reflexive--symmetric--transitive closure of reductions up to $\eta$-equivalence. We refer the reader to \cite{cic-hat-bar, cic-hat, cc-hat-omega, coq} for precise details and definitions.
+The reduction rules are the usual ones for $\beta$-reduction (function application), $\zeta$-reduction (let-in evaluation), $\iota$-reduction (case expressions), $\mu$-reduction (fixpoint expressions), $\nu$\-/reduction (cofixpoint expressions), $\delta$-reduction (local definitions), $\Delta$-reduction (global definitions), and $\eta$-equivalence. We define convertibility ($\approx$) as the reflexive--symmetric--transitive closure of reductions up to $\eta$-equivalence. We refer the reader to \cite{cic-hat-bar, cic-hat, cc-hat-omega, coq} for precise details and definitions.
 
-In the case of $\delta$-/$\Delta$-reduction, if the variable has annotations, we define additional rules, as shown in Figure~\ref{fig:reduction}. These reduction rules are particularly important for the typing algorithm. If the definition body contain \coinductive types (or other defined variables), we can assign them fresh annotations for each distinct usage of the defined variable. This allows for correct substaging relations derived from subtyping relations. Further details will be discussed in later sections. Note that since global definition bodies are erased to full terms, these rules essentially have no effect on the computation of a complete program.
+In the case of $\delta$-/$\Delta$-reduction, if the variable has annotations, we define additional rules, as shown in \autoref{fig:reduction}. These reduction rules are particularly important for the size inference algorithm. If the definition body contains \coinductive types (or other defined variables), we can assign them fresh annotations for each distinct usage of the defined variable. This allows for correct substaging relations derived from subtyping relations. Further details are discussed in later sections.
 
-We will also use the metafunction \textsc{whnf} to denote the reduction of a term to weak head normal form, which would have the form of a universe, a product type, an unapplied abstraction, an (un)applied \coinductive type, an (un)applied constructor, or an unapplied \cofixpoint, with inner terms unreduced.
+We will also use the metafunction \textsc{whnf} to denote the reduction of a term to weak head normal form, which would have the form of a universe, a function type, an unapplied abstraction, an (un)applied \coinductive type, an (un)applied constructor, or an unapplied \cofixpoint, with inner terms unreduced.
 
 \subsection{Subtyping Rules}
 
 \input{definitions/subtyping/substaging.tex}
 
-First, we define the substaging relation for our stage annotations in Figure~\ref{fig:substaging}. Additionally, we define $\widehat{\infty}$ to be equivalent to $\infty$.
+First, we define the substaging relation for our stage annotations in \autoref{fig:substaging}. Additionally, we define $\widehat{\infty}$ to be equivalent to $\infty$.
 
 \input{definitions/subtyping/subtyping.tex}
 
-We define the subtyping rules for sized types in Figure~\ref{fig:subtyping}. There are some key features to note:
+We define the subtyping rules for sized types in \autoref{fig:subtyping}. There are some key features to note:
 
 \begin{itemize}
-    \item Universes are \textbf{cumulative}. (\texttt{st-cumul)}
-    \item Since convertibility is symmetric, if $t \approx u$, then we have both $t \leq u$ and $u \leq t$. (\texttt{st-conv})
-    \item Inductive types are \textbf{covariant} in their stage annotations; coinductive types are \textbf{contravariant}. (\texttt{st-ind}, \texttt{st-coind})
-    \item By the type application rule, the parameters of polymorphic types are \textbf{bivariant}. (\texttt{st-app})
+    \item Universes are \textbf{cumulative}. \refnorule{st-cumul}
+    \item Since convertibility is symmetric, if $t \approx u$, then we have both $t \leq u$ and $u \leq t$. \refnorule{st-conv}
+    \item Inductive types are \textbf{covariant} in their stage annotations; coinductive types are \textbf{contravariant}. \refnorule{st-ind} \refnorule{st-coind}
+    \item By the type application rule, the parameters of polymorphic types are \textbf{bivariant}. \refnorule{st-app}
 \end{itemize}
 
 We can intuitively understand the covariance of inductive types by considering stage annotations as a measure of how many constructors "deep" an object can at most be. If a list has type $\texttt{List}^s t$, then a list with one more element can be said to have type $\texttt{List}^{\hat{s}} t$. Furthermore, by the substaging and subtyping rules, $\texttt{List}^s t \leq \texttt{List}^{\hat{s}} t$: if a list has at most $s$ "many" elements, then it certainly also has at most $\hat{s}$ "many" elements.
 
 Conversely, for coinductive types, we can consider stage annotations as a measure of how many constructors an object must at least "produce". A coinductive stream $\texttt{Stream}^{\hat{s}}$ that produces at least $\hat{s}$ "many" elements can also produce at least $s$ "many" elements, so we have the contravariant relation $\texttt{Stream}^{\hat{s}} \leq \texttt{Stream}^s$, in accordance with the rules.
 
-As previously mentioned, inductive definitions do not have polarities, so there is no way to indicate whether parameters are are covariant, contravariant, or invariant. As a compromise, we treat all parameters as invariant, which we instead call \textit{bivariant}. This is because, algorithmically speaking, the subtyping relation would produce both substaging constraints (and not neither, as \textit{invariant} suggests). For instance, $\texttt{List}^{s_1}\ \texttt{Nat}^{s_3} \leq \texttt{List}^{s_2}\ \texttt{Nat}^{s_4}$ yields $\texttt{Nat}^{s_3} \approx \texttt{Nat}^{s_4}$, which yields both $s_3 \sqsubseteq s_4$ and $s_4 \sqsubseteq s_3$. A formal description of the subtyping algorithm is presented in Section~\ref{algorithm}.
+As previously mentioned, inductive definitions do not have polarities, so there is no way to indicate whether parameters are are covariant, contravariant, or invariant. As a compromise, we treat all parameters as invariant, which we instead call \textit{bivariant}. This is because, algorithmically speaking, the subtyping relation would produce \textit{both} substaging constraints (and not \textit{neither}, as \textit{invariant} suggests). For instance, $\texttt{List}^{s_1}\ \texttt{Nat}^{s_3} \leq \texttt{List}^{s_2}\ \texttt{Nat}^{s_4}$ yields $\texttt{Nat}^{s_3} \approx \texttt{Nat}^{s_4}$, which yields both $s_3 \sqsubseteq s_4$ and $s_4 \sqsubseteq s_3$. A formal description of the subtyping algorithm is presented in \autoref{algorithm}.
 
 \subsection{Typing Rules}
 
 \input{definitions/typing-rules/well-formed.tex}
 
-\input{definitions/typing-rules/typing.tex}
-
-We now present the typing rules of \lang. Note that these are type-checking rules for \textit{sized} terms, whose annotations will come from size inference.
-
-We begin with the rules for well-formedness of local environments, global environments, and signatures, presented in Figure~\ref{fig:wf}. As mentioned earlier, we will not cover the specifics of \texttt{wf-sig}, but include its conclusion for completeness. Because well-typed terms are sized, we erase annotations when putting declarations in the global environment in \texttt{wf-global-assum} and \texttt{wf-global-def} as an explicit indicator that we only use stage variables within individual global declarations. The declared type of global definitions are annotated with global annotations in \texttt{wf-global-def}; these annotations are used by the typing rules.
-
 \input{definitions/typing-rules/metafunctions.tex}
+
+\input{definitions/typing-rules/typing.tex}
 
 \input{definitions/typing-rules/pos-neg.tex}
 
-The typing rules for sized terms are given in Figure~\ref{fig:typing}, each of which conclude in typing judgements in the context of a signature and the global and local environments. It uses the three sets Axioms, Rules, and Elims, which describe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. These are all found in the usual CIC and are listed in Figure~\ref{fig:axruel} in Appendix~\ref{figures} for convenience. Metafunctions that construct some important function types are listed in Figure~\ref{fig:metafunctions}; they are also used by the inference algorithm in Section~\ref{algorithm}. Finally, the typing rules use the notions of positivity and negativity, whose rules are given in Figure~\ref{fig:posneg}, describing where the position annotations of fixpoints are allowed to appear. We will go over the typing rules in detail shortly.
+We now present the typing rules of \lang. Note that these are type-checking rules for \textit{sized} terms, whose annotations will come from size inference in \autoref{algorithm}.
 
-Before we proceed, there are some indexing conventions to note. In the rules \texttt{ind}, \texttt{constr}, and \texttt{case}, we use $i$ to range over the number of \coinductive types in a single mutual \coinductive definition, $j$ to range over the number of constructors of a given \coinductive type, $k$ for a specific index in the range $\langle i \rangle$, and $\ell$ for a specific index in the range $\langle j \rangle$. In the rules \texttt{fix} and \texttt{cofix}, we use $k$ to range over the number of mutually-defined \cofixpoints and $m$ for a specific index in the range $\langle k \rangle$. When a judgement contains an unbound ranging index, i.e. not contained within $\langle \cdot \rangle$, it means that the judgement or side condition should hold for \textit{all} indices in its range. For instance, \texttt{case} branch judgement should hold for all branches, and the \texttt{fix} fixpoint type judgement for all mutually-defined fixpoints. Finally, we freely use $\_$ to omit irrelevant constructions for readability.
+We begin with the rules for well-formedness of local and global environments, presented in \autoref{fig:wf}. As mentioned earlier, we will not cover the well-formedness of signatures. Because well-typed terms are sized, we erase annotations when putting declarations in the global environment in Rules \refnorule{wf-global-assum} and \refnorule{wf-global-def} as an explicit indicator that we only use stage variables within individual global declarations. The declared type of global definitions are annotated with global annotations in \refrule{wf-global-def}; these annotations are used by the typing rules.
 
-The rules \texttt{var-assum}, \texttt{const-assum}, \texttt{univ}, \texttt{conv} \texttt{prod}, and \texttt{app} are essentially unchanged from CIC. The rules \texttt{abs} and \texttt{let-in} differ only in that type annotations are erased to bare. This is to preserve subject reduction without requiring size substitution during reduction, and is discussed further in \cite{cic-hat-bar}.
+The typing rules for sized terms are given in \autoref{fig:typing}. In the style of a Pure Type System, we define the three sets Axioms, Rules, and Elims, which describe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. These are the same as in CIC and are listed in \autoref{fig:axruel} in \autoref{figures} for reference. Metafunctions that construct some important function types are listed in \autoref{fig:metafunctions}; they are also used by the inference algorithm in \autoref{algorithm}. Finally, the typing rules use the notions of positivity and negativity, whose rules are given in \autoref{fig:posneg}, describing where the position annotations of fixpoints are allowed to appear. We go over the typing rules in detail shortly.
 
-The first significant usage of stage annotations are in \texttt{var-def} and \texttt{const-def}. If a variable or a constant is bound to a body in the local or global context, it is annotated with a vector of stages with the same length as the number of stage annotations in the body, allowing for proper $\delta$-/$\Delta$-reduction of variables and constants. Note that each usage of a variable or a constant does not have to have the same stage annotations (and in some cases cannot, as shown in Appendix~\ref{examples}).
+Before we proceed, there are some indexing conventions to note. In Rules \refnorule{ind}, \refnorule{constr}, and \refnorule{case}, we use $i$ to range over the number of \coinductive types in a single mutual \coinductive definition, $j$ to range over the number of constructors of a given \coinductive type, $k$ for a specific index in the range $\overline{\imath}$, and $\ell$ for a specific index in the range $\overline{\jmath}$. In Rules \refnorule{fix} and \refnorule{cofix}, we use $k$ to range over the number of mutually-defined \cofixpoints and $m$ for a specific index in the range $\overline{k}$. When a judgement contains an unbound ranging index, i.e. not contained within $\langle \cdot \rangle$, it means that the judgement or side condition should hold for \textit{all} indices in its range. For instance, the branch judgement in \refrule{case} should hold for all branches, and fixpoint type judgement in \refrule{fix} for all mutually-defined fixpoints. Finally, we use $\_$ to omit irrelevant constructions for readability.
 
-The type of a \coinductive type is a function type from its parameters $\Delta_p$ and its indices $\Delta_{a_k}$ to its universe $\omega_k$. The \coinductive type itself holds a single stage annotation.
+Rules \refnorule{var-assum}, \refnorule{const-assum}, \refnorule{univ}, \refnorule{conv} \refnorule{prod}, and \refnorule{app} are essentially unchanged from CIC. Rules \refnorule{abs} and \refnorule{let-in} differ only in that type annotations are erased to bare. This is to preserve subject reduction without requiring size substitution during reduction, and is discussed further in \cite{cic-hat-bar}.
 
-The type of a constructor is a function type from its parameters $\Delta_p$ and its arguments $\Delta_\ell$ to its \coinductive type $I_k$ applied to the parameters and its indices $\vec{t}_\ell$. Stage annotations appear in two places:
+The first significant usage of stage annotations are in Rules \refnorule{var-def} and \refnorule{const-def}. If a variable or a constant is bound to a body in the local or global environment, it is annotated with a vector of stages with the same length as the number of stage annotations in the body, allowing for proper $\delta$-/$\Delta$-reduction of variables and constants. Note that each usage of a variable or a constant does not have to have the same stage annotations.
+
+The type of a \coinductive type is a function type from its parameters $\Delta_p$ and its indices $\Delta_{a_k}$ to its universe $\varw_k$. The \coinductive type itself holds a single stage annotation.
+
+The type of a constructor is a function type from its parameters $\Delta_p$ and its arguments $\Delta_\ell$ to its \coinductive type $I_k$ applied to the parameters and its indices $\overline{t}_\ell$. Stage annotations appear in two places:
 \begin{itemize}
     \item In the argument types of the constructor. For each \coinductive type $I_i$, we annotate their occurrences in $\Delta_\ell$ with its own stage annotation $s_i$.
     \item On the \coinductive type of the fully-applied constructor. If the constructor belongs to the inductive type $I_k$, then it is annotated with the successor of the $k$th stage annotation, $\hat{s}_k$. Using the successor guarantees that the constructor always constructs an object that is \textit{larger} than any of its arguments of the same type.
@@ -258,21 +265,21 @@ As an example, consider a possible typing of \texttt{VCons}:
 \text{VCons} &: (A: \Type{}) \to (n:\text{Nat}^\infty) \to A \to \text{Vector}^s\ A\ n \\
 &\to \text{Vector}^{\hat{s}}\ A\ (\text{S}\ n).
 \end{align*}
-It has a single parameter $A$ and $\text{S}\ n$ corresponds to the index $\vec{t}_j$ of the constructor's inductive type. The input vector has size $s$, while the output vector has size $\hat{s}$.
+It has a single parameter $A$ and $\text{S}\ n$ corresponds to the index $\overline{t}_j$ of the constructor's inductive type. The input \texttt{Vector} has size $s$, while the output \texttt{Vector} has size $\hat{s}$.
 
 A case analysis has three important parts:
 \begin{itemize}
     \item The \textbf{target} $e$. It must have a \coinductive type $I_k$ and a successor stage annotation $\hat{s}_k$ so that any constructor arguments can have the predecessor stage annotation.
-    \item The \textbf{motive} $p$. It is an abstraction over the indices $\Delta_a$ of the target type and the target itself, and produces the return type of the case analysis. Note that the parameter variables in the indices are bound to the parameters of the target type.
+    \item The \textbf{motive} $\wp$. It is an abstraction over the indices $\Delta_a$ of the target type and the target itself, and produces the return type of the case analysis. Note that the parameter variables in the indices are bound to the parameters of the target type.
     
-    This presentation of the return type differs from those of \cite{cic-hat-bar, cic-hat-l, cc-hat-omega}, where the case analysis contains a return type in which the index and target variables are free and explicitly stated, in the syntactic form $\vec{y}.x.p$.
-    \item The \textbf{branches} $e_j$. Each branch is associated with a constructor $c_j$ and is an abstraction over the arguments $\Delta_j$ of the constructor, producing some term. The type of each branch is the motive $p$ applied to the indices $\vec{t}_j$ of that constructor's type and the constructor applied to the parameters and its arguments.
+    This presentation of the return type differs from those of \cite{cic-hat-bar, cic-hat-l, cc-hat-omega}, where the case analysis contains a return type in which the index and target variables are free and explicitly stated, in the syntactic form $\overline{y}.x.\wp$.
+    \item The \textbf{branches} $e_j$. Each branch is associated with a constructor $c_j$ and is an abstraction over the arguments $\Delta_j$ of the constructor, producing some term. The type of each branch is the motive $\wp$ applied to the indices $\overline{t}_j$ of that constructor's type and the constructor applied to the parameters and its arguments.
     
     Note that, like in the type of constructors, for each \coinductive type $I_i$, we annotate their occurrences in $\Delta_j$ with its own stage annotation $s_i$, with the $k$th stage annotation being the predecessor of the target's stage annotation, $s_k$.
 \end{itemize}
-The type of the entire case analysis is then naturally the motive applied to the target type's indices and the target itself. Notice that we also restrict the universe of this type based on the universe of the target type using Elims.
+The type of the entire case analysis is then the motive applied to the target type's indices and the target itself. Notice that we also restrict the universe of this type based on the universe of the target type using Elims.
 
-Finally, we have the types of fixpoints and cofixpoints, whose typing rules are very similar. We take the annotated type $t_k$ of the $k$th \cofixpoint definition to be convertible to a function type containing a \coinductive type. For fixpoints, the inductive type annotated with a stage variable $v_k$ is the type of the $\vec{n}(m)$th argument, where $\vec{n}$ is a vector of indices that indicate for each fixpoint definition the position of the recursive argument. For cofixpoints, the coinductive type annotated with $v_k$ is the return type. The positivity or negativity of $v_k$ in the rest of $t_k$ indicate where $v_k$ may occur other than in the \corecursive position. For instance,
+Finally, we have the types of fixpoints and cofixpoints, whose typing rules are very similar. We take the annotated type $t_k$ of the $k$th \cofixpoint definition to be convertible to a function type containing a \coinductive type. For fixpoints, the type of the $n_k$th argument, the recursive argument, is an inductive type annotated with a stage variable $v_k$. For cofixpoints, the return type is a coinductive type annotated with $v_k$. The positivity or negativity of $v_k$ in the rest of $t_k$ indicate where $v_k$ may occur other than in the \corecursive position. For instance,
 \begin{equation*}
 \text{List}^\upsilon\ \text{Nat} \to \text{List}^\upsilon\ \text{Nat} \to \text{List}^\upsilon\ \text{Nat}
 \end{equation*}
@@ -286,13 +293,13 @@ In general, $\upsilon_k$ indicates the types that are size-preserved. For fixpoi
 
 If $t_k$ are well typed, then the \cofixpoint bodies should have type $t_k$ with a successor size in the local context where \cofixpoint names $f_k$ are bound to their types $t_k$. Intuitively, this tells us that the recursive call to $f_k$ in fixpoint bodies are on smaller-sized arguments, and that corecursive bodies produce objects larger than those from the corecursive call to $f_k$. The type of the whole \cofixpoint is then the $m$th type $t_m$ with its stage variable $v_m$ bound to some annotation $s$.
 
-Additionally, all \cofixpoint types are annotated with position annotations: $|t_k|^{\upsilon_k}$ replaces all occurrences of $v_k$ with $*$. We cannot keep the stage annotations for the same reason as in \texttt{abs}, but we use $*$ to remember which types are size-preserving.
+Additionally, all \cofixpoint types are annotated with position annotations: $|t_k|^{\upsilon_k}$ replaces all occurrences of $v_k$ with $*$. We cannot keep the stage annotations for the same reason as in \refrule{abs}, but we use $*$ to remember which types are size-preserving.
 
-In actual Coq code, the indices of the recursive elements are rarely given, and there are no user-provided position annotations at all. In Section~\ref{algorithm}, we present how we compute the indices and the position annotations during size inference.
+In actual Coq code, the indices of the recursive elements are rarely given, and there are no user-provided position annotations at all. In \autoref{algorithm}, we present how we compute the indices and the position annotations during size inference.
 
 \section{Size Inference}\label{algorithm}
 
-The goal of the size inference algorithm is to take unannotated programs in $T^\circ$ (corresponding to terms in CIC), simultaneously assign annotations to them while collecting a set of substaging constraints based on the typing rules, check the constraints to ensure termination and productivity, and produce annotated programs in $T^\iota$ that are stored in the global environment and can be used in the inference of future programs.
+The goal of the size inference algorithm is to take unannotated programs in $T^\circ$ (corresponding to terms in CIC), simultaneously assign annotations to them while collecting a set of substaging constraints based on the typing rules, check the constraints to ensure termination and productivity, and produce annotated programs in $T^\iota$ that are stored in the global environment and can be used in the inference of future programs. Constraints are generated when two sized types are deemed to satisfy the subtyping relation $t \leq u$, from which we deduce the subtyping relations that must hold for their annotations from the subtyping rules. Therefore, this algorithm is also a type-checking algorithm, since it could be that $t$ fails to subtype $u$, in which case the algorithm fails.
 
 \subsection{Notation}
 
@@ -305,49 +312,49 @@ We use three kinds of judgements to represent \textit{checking}, \textit{inferen
 
 The algorithm is implicitly parametrized over a set of stage variables $\mathcal{V}$, a set of position stage variables $\mathcal{P}$, and a signature $\Sigma$. The sets $\mathcal{V}, \mathcal{P}$ are treated as mutable for brevity, their assignment denoted with $\coloneqq$, and initialized as empty. The variable assignment $V = \mathcal{V}$ is a copy-by-value and not a reference. We will have $\mathcal{P} \subseteq \mathcal{V}$ throughout. Finally, we use $e \Rightarrow^* t$ to mean $e \Rightarrow t' \wedge t = \whnf{t'}$.
 
-We define a number of metafunctions to translate the side conditions from the typing rules into procedural form. They are introduced as needed, but are also summarized in Figure~\ref{fig:metafunctions2} in Appendix~\ref{figures}.
+We define a number of metafunctions to translate the side conditions from the typing rules into procedural form, which are introduced as needed.
 
 \subsection{Inference Algorithm}
 
 \input{definitions/inference/algorithm1.tex}
 
-Size inference begins with a bare term. In this case, even type annotations of \cofixpoints are bare; that is, $$T^\circ \Coloneqq \dots \mid \text{fix}_{\vec{m}, n}\ \langle \mathcal{X} : T^\circ \coloneqq T^\circ \rangle \mid \text{cofix}_{n}\ \langle \mathcal{X} : T^\circ \coloneqq T^\circ \rangle$$
-Notice that fixpoints still have their vector of recursive argument indices, whereas real Coq code can have no indices given. To produce these indices, we can simply do what Coq's kernel currently does: attempt type-checking on every combination of indices from left to right until one combination works, or fail if none do.
+Size inference begins with a bare term. In this case, even type annotations of \cofixpoints are bare; that is, $$T^\circ \Coloneqq \dots \mid \text{fix}_{\langle n_k \rangle, m}\ \langle \mathcal{X} : T^\circ \coloneqq T^\circ \rangle \mid \text{cofix}_{n}\ \langle \mathcal{X} : T^\circ \coloneqq T^\circ \rangle$$
+Notice that fixpoints still have their vector of recursive argument indices, whereas real Coq code can have no indices given. To produce these indices, we do what Coq's kernel currently does: attempt type-checking on every combination of indices from left to right until one combination works, or fail if none do.
 
-Figure~\ref{fig:algorithm1} presents the size inference algorithm, which includes \texttt{a-global-empty}, \texttt{a-global-assum}, and \texttt{a-global-def} as the \textit{well-formedness} component of the algorithm. The algorithm uses the same indexing conventions as the typing rules. We will go over parts of the algorithm in detail shortly.
+\autoref{fig:algorithm1} presents the size inference algorithm, which uses the same indexing conventions as the typing rules. We will go over parts of the algorithm in detail shortly.
 
-\texttt{a-check} is the \textit{checking} component of the algorithm. To ensure that the inferred type subtypes the sized given type, it uses the metafunction $\preceq$ that takes two sized terms and attempts to produce a set of stage constraints based on the subtyping rules of Figure~\ref{fig:subtyping}. It performs reductions as necessary and fails if two terms are incompatible. The unsized version of this function exists in the Coq kernel as a comparison function between two terms. The most significant change required to modify it for our needs is producing substaging relations based on \texttt{st-ind} and \texttt{st-coind}, and collecting them into a constraint set.
+\refrule{a-check} is the \textit{checking} component of the algorithm. To ensure that the inferred type subtypes the sized given type, it uses the metafunction $\preceq$ that takes two sized terms and attempts to produce a set of stage constraints based on the subtyping rules of \autoref{fig:subtyping}. It performs reductions as necessary and fails if two terms are incompatible.
 
-The rules \texttt{a-var-assum}, \texttt{a-const-assum}, \texttt{a-univ}, \texttt{a-prod}, \texttt{a-abs}, \texttt{a-app}, and \texttt{a-let-in} are all fairly straightforward. Again, we erase type annotations to bare. They use the metafunctions \textsc{axiom}, \textsc{rule}, and \textsc{elim}, which are functional counterparts to the sets Axioms, Rules, and Elims in Figure~\ref{fig:axruel}. \textsc{axiom} produces the type of a universe; \textsc{rule} produces the type of a product type given the universes of its argument and return types. \textsc{elim} directly checks membership in Elims and can fail.
+Rules \refnorule{a-var-assum}, \refnorule{a-const-assum}, \refnorule{a-univ}, \refnorule{a-prod}, \refnorule{a-abs}, \refnorule{a-app}, and \refnorule{a-let-in} are all fairly straightforward. Again, we erase type annotations to bare. They use the metafunctions \textsc{axiom}, \textsc{rule}, and \textsc{elim}, which are functional counterparts to the sets Axioms, Rules, and Elims in \autoref{fig:axruel}. \textsc{axiom} produces the type of a universe; \textsc{rule} produces the type of a function type given the universes of its argument and return types. \textsc{elim} directly checks membership in Elims and can fail.
 
-In \texttt{a-var-def} and \texttt{a-const-def}, we annotate variables and constants using \textsc{fresh}, which generates the given number of fresh stage annotations, adds them to $\mathcal{V}$, and returns them as a vector. Its length corresponds to the number of stage annotations found in the body of the definitions. For instance, if $(x : \Type{} \coloneqq \text{List}^{s_1}\ \text{Nat}^{s_2}) \in \Gamma$, then a use of $x$ could be annotated as $x^{\langle \upsilon_1, \upsilon_2 \rangle}$. If $x$ were used somewhere where reduction occurs during the inference, such as in a fixpoint type, then it would be $\delta$-reduced to $\text{List}^{\upsilon_1}\ \text{Nat}^{\upsilon_2}$. Furthermore, since the types of global definitions can have global annotations marking sized-preserved types, we replace them with a fresh stage variable.
+In Rules \refnorule{a-var-def} and \refnorule{a-const-def}, we annotate variables and constants using \textsc{fresh}, which generates the given number of fresh stage annotations, adds them to $\mathcal{V}$, and returns them as a vector. Its length corresponds to the number of stage annotations found in the body of the definitions. For instance, if $(x : \Type{} \coloneqq \text{List}^{s_1}\ \text{Nat}^{s_2}) \in \Gamma$, then a use of $x$ would be annotated as $x^{\langle \upsilon_1, \upsilon_2 \rangle}$. If $x$ is $\delta$-reduced inference, such as in a fixpoint type, then it is replaced by $\text{List}^{\upsilon_1}\ \text{Nat}^{\upsilon_2}$. Furthermore, since the types of global definitions can have global annotations marking sized-preserved types, we replace the global annotations with a fresh stage variable.
 
-A position-annotated type from a \cofixpoint can be passed into the algorithm, so we deal with the possibilities separately in \texttt{a-ind} and \texttt{a-ind-star}. In the former, a bare \coinductive type is annotated with a stage variable; in the latter, a \coinductive type with a position annotation has its annotation replaced by a position stage variable. The metafunction \textsc{fresh*} does the same thing as \textsc{fresh} except that it also adds the freshly-generated stage variables to $\mathcal{P}$.
+A position-annotated type (i.e. an annotated \corecursive type) from a \cofixpoint can be passed into the algorithm, so we deal with the possibilities separately in Rules \refnorule{a-ind} and \refnorule{a-ind-star}. In the former, a bare \coinductive type is annotated with a stage variable; in the latter, a \coinductive type with a position annotation has its annotation replaced by a position stage variable. The metafunction \textsc{fresh*} does the same thing as \textsc{fresh} except that it also adds the freshly-generated stage variables to $\mathcal{P}$.
 
-In \texttt{a-constr}, we generate a fresh stage variable for each \coinductive type in the mutual definition that defines the given constructor. The number of types is given by \textsc{inds}. These are used to annotate the types of its \coinductive arguments, as well as the return type, which of course has a successor stage annotation.
+In \refrule{a-constr}, we generate a fresh stage variable for each \coinductive type in the mutual definition that defines the given constructor. The number of types is given by \textsc{inds}. These are used to annotate the types of its \coinductive arguments, as well as the return type, which of course has a successor stage annotation.
 
-\texttt{a-case} proceeds as we would expect: we get the type of the target and the motive, we check that the motive and the branches have the types we expect given the target type, and we give the type of the case analysis as the motive applied to the target type's indices and the target itself. Similar to \texttt{a-constr}, we generate a fresh stage variable for each \coinductive type in the mutual definition that defines the type of the target, and we use them to annotate the types of the arguments of each branch.
+The key constraint generated by \refrule{a-case} is $\hat{\upsilon}_k \sqsubseteq s$, where $s$ is the annotation on the target type $I_k$. Similar to \refrule{a-constr}, we generate fresh stage variables $\overline{\upsilon_i}$ for each \coinductive type in the mutual definition that defines the type of the target. They are assigned to the branches' arguments of types $\overline{I_i}$, which correspond to the constructor arguments of the target. Then this constraint ensures that the constructor argument types have a smaller size than that of the target, since by Rules \refnorule{ss-succ} and \refnorule{ss-trans} we have $\upsilon_k \sqsubseteq s$.
 
-We check for valid elimination universes using \textsc{elim} on the motive type's return universe and the target type's universe. To obtain the motive type's return universe, we decompose the motive's type using \textsc{decompose}, which splits a function type into the given number of arguments and a return type, which in this case is the return universe. \textsc{decompose} fails if the input is not a function type or does not have at least the given number of arguments, and uses \textsc{whnf} as needed to reduce terms to function types.
-
-An important thing to note is the additional constraint $\hat{\upsilon}_k \sqsubseteq s$, where $s$ is the annotation on the target type $I_k$ and $\upsilon_k$ is the annotation we assign to the branches' arguments of type $I_k$. The constraint ensures that the branch arguments, which correspond to the constructor arguments of the target, have a smaller size than the target, since by \texttt{ss-succ} and \texttt{ss-trans} we have $\upsilon_k \sqsubseteq s$.
+The rest of the rule proceeds as we would expect: we get the type of the target and the motive, we check that the motive and the branches have the types we expect given the target type, and we give the type of the case analysis as the motive applied to the target type's indices and the target itself. We also ensure that the elimination universes are valid using \textsc{elim} on the motive type's return universe and the target type's universe. To obtain the motive type's return universe, we decompose the motive's type using \textsc{decompose}, which splits a function type into the given number of arguments and a return type, which in this case is the return universe.
 
 Finally, we come to size inference and termination- and productivity-checking for \cofixpoints. It uses the following metafunctions:
 \begin{itemize}
     \item \textsc{setRecStars}, given a function type $t$ and an index $n$, decomposes $t$ into arguments and return type, reduces the $n$th argument type to an inductive type, annotates that inductive type with position annotation $*$, annotates all other argument and return types with the same inductive type with $*$, and rebuilds the function type. This is how fixpoint types obtain their position annotations without being user-provided; the algorithm will remove other position annotations if size-preservation fails. Similarly, \textsc{setCorecStars} annotates the coinductive return type first, then the argument types with the same coinductive type. Both of these can fail if the $n$th argument type or the return type respectively are not \coinductive types. Note that the decomposition of $t$ may perform reductions using \textsc{whnf}.
     \item \textsc{getRecVar}, given a function type $t$ and an index $n$, returns the position stage variable of the annotation on the $n$th inductive argument type, while \textsc{getCorecVar} returns the position stage variable of the annotation on the coinductive return type. Essentially, they retrieve the position stage variable of the annotation on the primary \corecursive type of a \cofixpoint type, which is used to check termination and productivity.
-    \item \textsc{shift} replaces each stage annotation with a position stage variable in the given term by its successor. That is, $\forall s \in S, \lfloor s \rfloor \in \mathcal{P} \implies s \mapsto \hat{s}$.
+    \item \textsc{shift} replaces all stage annotations $s$ with a position stage variable (i.e. $\lfloor s \rfloor \in \mathcal{P}$) by its successor $\hat{s}$.
 \end{itemize}
 
-The rules \texttt{a-fix} and \texttt{a-cofix} first run the algorithm on the \cofixpoint types, ignoring the results, to ensure that any reduction we perform on it will terminate. Then we annotate the types with position annotations and pass them through the algorithm to get sized types $t_k$. Next, we check that the \cofixpoint bodies in the environment of the \cofixpoint names bound to their sized types have the successor-sized type of $t_k$. Lastly, we call \textsc{RecCheckLoop}, and return the constraints it gives us, along with the $m$th \cofixpoint type.
+Although the desired \cofixpoint is the $m$th one in the block of mutually-defined \cofixpoints, we must still size-infer and type-check the entire mutual definition. Rules \refnorule{a-fix} and \refnorule{a-cofix} first run the size inference algorithm on each of the \cofixpoint types, ignoring the results, to ensure that any reduction we perform on it will terminate (otherwise the algorithm would have failed). Then we annotate the bare types with position annotations and pass these position types through the algorithm to get sized types $\overline{t_k}$. Next, we check that the \cofixpoint bodies have the successor-sized types of $\overline{t_k}$ when the \cofixpoints have types $\overline{t_k}$ in the environment. Lastly, we call \textsc{RecCheckLoop}, and return the constraints it gives us, along with the $m$th \cofixpoint type.
 
 \input{definitions/inference/helpers.tex}
 
-$\textsc{RecCheckLoop}$ is a recursive function that calls \textsc{RecCheck}, which checks that the given constraints can be satisfied. This could fail with $\textsc{RecCheckFail}$, which gives a set $V$ of position stage variables (excluding $\langle \rho_k \rangle$) that must be set to infinity; since position stage variables always appear on size-preserved types, they cannot be infinite. We then remove the offending variables from $\mathcal{P}$ and try again. Subsequent iterations would reduce the size of $\texttt{pv}_k$ until it contains only $\langle \rho_k \rangle$. If $V$ is found to be empty in \textsc{RecCheck}, it fails normally, causing \textsc{RecCheckLoop} to fail entirely. An OCaml-like pseudocode implementation of \textsc{RecCheckLoop} is provided by Figure~\ref{fig:helpers}.
+Notice that in \textsc{setRecStars} and \textsc{setCorecStars}, we annotate \textit{all} possible \coinductive types in the \cofixpoint type with position annotations. Evidently not all \cofixpoints are size-preserving; some of those position annotations (excluding the one on the recursive argument type or the corecursive return type) will need to be removed. \textsc{RecCheckLoop} is a recursive function that calls \textsc{RecCheck}, which checks that a given set of stage constraints can be satisfied; if it cannot, then \textsc{RecCheckLoop} removes the position annotations that \textsc{RecCheckLoop} has found to be problematic, then tries again. 
+
+More specifically, \textsc{RecCheck} can fail with \textsc{RecCheckFail}, which contains a set $V$ of position stage variables that must be set to infinity; since position stage variables always appear on size-preserved types, they cannot be infinite. \textsc{RecCheckLoop} then removes $V$ from the set of position stage variables, allowing them to be set to infinity, and recursively calls itself. The number of position stage variables from the \cofixpoint type shrinks on every iteration until no more can be removed, at which point \textsc{RecCheckLoop} fails the algorithm. An OCaml-like pseudocode implementation of \textsc{RecCheckLoop} is provided by \autoref{fig:helpers}.
 
 \subsection{RecCheck}
 
-As in previous work on \CChatomega with coinductive streams \cite{cc-hat-omega} and in \CIChat, we use the same \textsc{RecCheck} algorithm from \Fhat \cite{f-hat}. It takes four arguments:
+As in previous work on \CChatomega with coinductive streams \cite{cc-hat-omega} and in \CIChat, we use the same \textsc{RecCheck} algorithm from \Fhat \cite{f-hat}. Its goal is to check a set of constraints for circular substaging relations, set the stage variables involved in the cycles to $\infty$, and to produce a new set of constraints without these problems or fail, indicating nontermination or nonproductivity. It takes four arguments:
 
 \begin{itemize}
     \item A set of substaging constraints $C$.
@@ -356,59 +363,130 @@ As in previous work on \CChatomega with coinductive streams \cite{cc-hat-omega} 
     \item A set of stage variables $V^\neq$ that must be set to $\infty$. These are all other non-position stage annotations, found in the \cofixpoint type, the \cofixpoint body, and outside the \cofixpoint.
 \end{itemize}
 
-Here, we begin to treat $C$ as a weighted, directed graph. Each stage variable corresponds to a node, and each substaging relation is an edge from the lower to the upper variable. A stage annotation consists of a stage variable with an arbitrary finite nonnegative number of successor "hats"; instead of using a perniculous tower of carets, we can write the number as a superscript, as in $\hat{\upsilon}^n$. Then given a substaging relation $\hat{\upsilon}_1^{n_1} \sqsubseteq \hat{\upsilon}_2^{n_2}$, the weight of the edge from $\upsilon_1$ to $\upsilon_2$ is $n_2 - n_1$. Substagings to $\infty$ don't need to be added to $C$ since they are given by rule \texttt{ss-infty}; substagings from $\infty$ are given an edge weight of $0$.
+Here, we begin to treat $C$ as a weighted, directed graph. Each stage variable corresponds to a node, and each substaging relation is an edge from the lower to the upper variable. A stage annotation consists of a stage variable with an arbitrary finite nonnegative number of successor "hats"; instead of using a perniculous tower of carets, we can write the number as a superscript, as in $\hat{\upsilon}^n$. Then given a substaging relation $\hat{\upsilon}_1^{n_1} \sqsubseteq \hat{\upsilon}_2^{n_2}$, the weight of the edge from $\upsilon_1$ to $\upsilon_2$ is $n_2 - n_1$. Substagings to $\infty$ don't need to be added to $C$ since they are given by \refrule{ss-infty}; substagings from $\infty$ are given an edge weight of $0$.
 
 Given a set of stage variables $V$, its \textit{upward closure} $\bigsqcup V$ in $C$ is the set of stage variables that can be reached from $V$ by travelling along the edges of $C$; that is, $\upsilon_1 \in V \wedge \hat{\upsilon}_1^{n_1} \sqsubseteq \hat{\upsilon}_2^{n_2} \implies \upsilon_2 \in V$. Similarly, the \textit{downward closure} $\bigsqcap V$ in $C$ is the set of stage variables that can reach $V$ by travelling along the edges of $C$, or $\upsilon_2 \in V \wedge \hat{\upsilon}_1^{n_1} \sqsubseteq \hat{\upsilon}_2^{n_2} \implies \upsilon_1 \in V$.
 
 We will use the notation $\upsilon \sqsubseteq V$ to denote the set of constraints from $\upsilon$ to each stage variable in $V$.
 
-The goal of \textsc{RecCheck} is to check $C$ for negative cycles, setting stage variables involved in these cycles to $\infty$, to resolve conflicts between $V^*$ and $V^\neq$, and to produce a new set of constraints without these problems or fail. It proceeds as follows:
+The algorithm proceeds as follows:
 
 \begin{enumerate}
     \item Let $V^\iota = \bigsqcap V^*$, and add $\rho \sqsubseteq V^\iota$ to $C$. This ensures that $\rho$ is the smallest stage variable among all the noninfinite stage variables.
     \item Find all negative cycles in $C$, and let $V^-$ be the set of all stage variables present in some negative cycle.
     \item Remove all edges with stage variables in $V^-$ from $C$, and add $\infty \sqsubseteq V^-$. Since $\widehat{\infty} \sqsubseteq \infty$, this is the only way to resolve negative cycles.
-    \item Add $\infty \sqsubseteq \bigsqcup V^\neq \cap \bigsqcup V^\iota$ to $C$.
-    \item Let $V^\bot = \bigsqcup \set{\infty} \cap V^\iota$. This is the set of stage variables that we have determined to both be infinite and noninfinite. If $V^\bot$ is empty, then return $C$.
-    \item Otherwise, let $V = V^\bot \cap (V^* \setminus \set{\rho})$. This is the set of contradictory position stage variables excluding $\rho$, which we can remove from $\mathcal{P}$ in \textsc{RecCheckLoop}. If $V$ is empty, there are no position stage variables left to remove, and the check fails. If $V$ is not empty, fail with \textsc{RecCheckFail}($V$).
+    \item Add $\infty \sqsubseteq \left(\bigsqcup V^\neq \cap \bigsqcup V^\iota\right)$ to $C$.
+    \item Let $V^\bot = \left(\bigsqcup \set{\infty}\right) \cap V^\iota$. This is the set of stage variables that we have determined to both be infinite and noninfinite. If $V^\bot$ is empty, then return $C$.
+    \item Otherwise, let $V = V^\bot \cap (V^* \setminus \set{\rho})$. This is the set of contradictory position stage variables excluding $\rho$, which we can remove from $\mathcal{P}$ in \textsc{RecCheckLoop}. If $V$ is empty, there are no position stage variables left to remove, so the check and therefore the size inference algorithm fails. If $V$ is not empty, fail with \textsc{RecCheckFail}($V$), which is handled by \textsc{RecCheckLoop}.
 \end{enumerate}
 
 \subsection{Well-Formedness}
 
-A self-contained chunk of code, be it a file or a module, consists of a sequence of \coinductive definitions, or signatures, and programs, or global declarations. For our purposes, we assume that there is a singular well-formed signature defined independently. Assuring that the chunk of code is properly typed is then performing size inference on each declaration of $\Gamma_G$. These are given by the rules \texttt{a-global-empty}, \texttt{a-global-assum}, and \texttt{a-global-def}. The first two are straightforward.
+A self-contained chunk of code, be it a file or a module, consists of a sequence of \coinductive definitions, or signatures, and programs, or global declarations. For our purposes, we assume that there is a singular well-formed signature defined independently. Assuring that the chunk of code is properly typed is then performing size inference on each declaration of $\Gamma_G$. These are given by Rules \refnorule{a-global-empty}, \refnorule{a-global-assum}, and \refnorule{a-global-def}. The first two are straightforward.
 
-In \texttt{a-global-def}, we obtain two types: $u$, the inferred sized type of the definition body, and $t$, its sized declared type. Evidently, $u$ must subtype $t$. Furthermore, only $u$ has position stage variables due to the body $e$, so we use \textsc{getPosVars} to find the stage variables of $t$ in the same locations as the position stage variables of $u$. For instance, if $\mathcal{P} = \set{\rho}$, $$\getposvars{\text{Nat}^\upsilon \to \text{Nat}^{\upsilon'}}{\text{Nat}^\rho \to \text{Nat}^{\upsilon''}} = \set{\upsilon}.$$ These then get added to $\mathcal{P}$ so that $|\cdot|^\iota$ properly erases the right stage annotations to global annotations. We cannot simply replace $t$ with $u$, since $t$ may have a more general type, e.g. $u = \text{Nat} \to \Set$ vs. $t = \text{Nat} \to \Type{}$.
+In \refrule{a-global-def}, we obtain two types: $u$, the inferred sized type of the definition body, and $t$, its sized declared type. Evidently, $u$ must subtype $t$. Furthermore, only $u$ has position stage variables due to the body $e$, so we use \textsc{getPosVars} to find the stage variables of $t$ in the same locations as the position stage variables of $u$. For instance, if $\mathcal{P} = \set{\rho}$, $$\getposvars{\text{Nat}^\upsilon \to \text{Nat}^{\upsilon'}}{\text{Nat}^\rho \to \text{Nat}^{\upsilon''}} = \set{\upsilon}.$$ These then get added to $\mathcal{P}$ so that $|\cdot|^\iota$ properly erases the right stage annotations to global annotations. We cannot simply replace $t$ with $u$, since $t$ may have a more general type, e.g. $u = \text{Nat} \to \Set$ vs. $t = \text{Nat} \to \Type{}$.
+
+\section{Examples}\label{examples}
+
+Returning to our example programs in \autoref{intro}, in \lang they would be written as:
+
+\begin{minted}[escapeinside=<>,mathescape=true]{coq}
+Def minus: Nat<$^\iota$> <$\to$ >Nat<$^\iota$> <$\to$> Nat<$^\iota$> <$\coloneqq$> <$\dots$>.
+Def div: Nat<$^\iota$> <$\to$ >Nat <$\to$> Nat<$^\iota$> <$\coloneqq$> <$\dots$>.
+\end{minted}
+
+The body of \texttt{div} only needs to know that \texttt{minus} has type $\text{Nat}^\iota \to \text{Nat}^\iota \to \text{Nat}^\iota$ and nothing else. Furthermore, we have no problems using variables in our fixpoint types (note that we use 1-based indexing):
+
+\begin{minted}[escapeinside=<>,mathescape=true]{coq}
+Def aNat: Set <$\coloneqq$> Nat.
+Def add: aNat<$^{\langle\iota\rangle}$> <$\to$> aNat <$\to$> aNat <$\coloneqq$>
+  fix<$_{\langle 1 \rangle, 1}$> add': aNat<$^{\langle * \rangle}$> <$\to$> Nat <$\to$> Nat <$\coloneqq$> <$\dots$>.
+\end{minted}
+
+For the following examples we use a more succinct, Coq-like syntax for brevity, adding in global annotations where necessary. Assuming the usual definition for \texttt{List}s and \texttt{Bool}s, and the usual \texttt{if}-\texttt{then}-\texttt{else} syntax, we can construct a \texttt{filter} function with size-preserving types, since the output list is never longer than the input list.
+
+\begin{minted}[escapeinside=<>,mathescape=true]{coq}
+Definition filter:
+  (A: Set) -> (A -> Bool) -> List<$^\iota$> A -> List<$^\iota$> A :=
+  fix filter' A pred (l: List<$^*$> A): List<$^*$> A :=
+    match l with
+      | Nil => Nil
+      | Cons _ hd tl =>
+        if pred hd
+        then Cons A hd (filter' A pred tl)
+        else (filter' tl)
+    end.
+Definition append:
+  (A: Set) -> List<$^\iota$> A -> List A -> List A := <$\dots$>.
+\end{minted}
+
+We also have an \texttt{append} function that is \textit{not} size-preserving. Now we are all set to implement \texttt{quicksort} on \texttt{Nat}s:
+
+\begin{minted}[escapeinside=<>,mathescape=true]{coq}
+Definition quicksort:
+  (A: Set) -> List<$^\iota$> Nat -> List Nat :=
+  fix quicksort' A (l: List<$^*$> Nat): List Nat :=
+    match l with
+    | Nil => Nil
+    | Cons _ hd tl => append A
+      (quicksort' (filter Nat leb tl))
+      (Cons Nat hd
+        (quicksort' (filter Nat gtb tl)))
+    end.
+\end{minted}
+Even though the output list has the same length as the input list, there is no way to add sizes in our current size algebra, so the return type of \texttt{append} is not annotated with the same size as the input type of \texttt{quicksort}. While asserting that \texttt{quicksort} does not change the length of the list requires additional proof, the fact that it \textit{terminates} is given to us by virtue of being typeable.
+
+On the other hand, it is because we cannot express any size relations more complicated than size-preservation that \texttt{gcd}, while terminating, is not typeable.
+
+\begin{minted}[escapeinside=<>,mathescape=true]{coq}
+Definition modulo: Nat -> Nat<$^\iota$> -> Nat<$^\iota$> := <$\dots$>
+Fail Definition gcd: Nat -> Nat -> Nat :=
+  fix gcd' a b :=
+    match a with
+    | O => b
+    | S a' => gcd' (modulo b a) a
+    end.
+\end{minted}
+
+Because \texttt{modulo} can only determine that the return type is at most as large as its second argument, the first argument to the recursive call in \texttt{gcd'} has a type with the same size as \texttt{a}, and is not deemed to decrease on its first argument.
+
+In the implementation in Coq, programs that type check only with sized types can be declared by first turning off guard checking using the existing flag, then turning on sized typing.
+
+\begin{minted}{coq}
+Unset Guard Checking.
+Set Sized Typing.
+\end{minted}
 
 \section{Related Work}\label{related}
 
-The vast majority of this work is based on \CIChat \cite{cic-hat}, which describes CIC with sized types and a size inference algorithm. It assumes that position annotations are given by the user, requires each parameter of \coinductive types to be assigned polarities, and deals only with terms. We have added on top of it global declarations, constants and variables annotated by a vector of stage annotations, their $\delta$\-//$\Delta$\-/reductions, a let-in construction, an explicit treatment of mutually-defined \coinductive types and \cofixpoints, and an intermediate procedure \textsc{RecCheckLoop} to handle missing position annotations, while removing parameter polarities and subtyping rules based on these polarities.
+This work is based on \CIChat \cite{cic-hat}, which describes CIC with sized types and a size inference algorithm. It assumes that position annotations are given by the user, requires each parameter of \coinductive types to be assigned polarities, and deals only with terms. We have added on top of it global declarations, constants and variables annotated by a vector of stage annotations, their $\delta$\-//$\Delta$\-/reductions, a let-in construction, an explicit treatment of mutually-defined \coinductive types and \cofixpoints, and an intermediate procedure \textsc{RecCheckLoop} to handle missing position annotations, while removing parameter polarities and subtyping rules based on these polarities.
 
-The language \CIChatbar from the dissertation \cite{cic-hat-bar} is essentially the same as \CIChat, described in far greater detail, but with one major difference: \CIChatbar disallows stage variables in the bodies of abstractions, in the arguments of applications, and in case analysis branches, making \CIChatbar a subset of \CIChat. Any stage annotations found in these locations must be set to $\infty$. This solves the problem of knowing which stage annotations to use when using a variable defined as, for instance, an inductive type, simply by disallowing stage annotations in these definitions. However, this prevents us from using a variable as the \corecursive type of a \cofixpoint, and forces these types to be literal \coinductive types. In practice, such as in Coq's default theorems and libraries, aliases are often defined for \coinductive types, so we have elected to ignore this restriction, and to work around it with annotated variables and constants.
+The language \CIChatbar \cite{cic-hat-bar} is similar \CIChat, described in greater detail, but with one major difference: \CIChatbar disallows stage variables in the bodies of abstractions, in the arguments of applications, and in case analysis branches, making \CIChatbar a strict subset of \CIChat. Any stage annotations found in these locations must be set to $\infty$. This solves the problem of knowing which stage annotations to use when using a variable defined as, for instance, an inductive type, simply by disallowing stage annotations in these definitions. However, this prevents us from using a variable as the \corecursive type of a \cofixpoint, and forces these types to be literal \coinductive types. In practice, such as in Coq's default theorems and libraries, aliases are often defined for \coinductive types, so we have worked around it with annotated variables and constants.
 
 The implementation of \textsc{RecCheck} comes from \Fhat \cite{f-hat}, an extension of System F with type-based termination used sized types. Rules relating to coinductive constructions and cofixpoints comes from the natural extension of \CChatomega \cite{cc-hat-omega}, which describes only infinite streams. Additionally, the judgement syntax for describing the size inference algorithm comes from \CChatomega and \CIChatl \cite{cic-hat-l}.
 
-Whereas our successor sized types uses a size algebra that only has a successor operation, \textit{linear} sized types in \CIChatl extends the algebra by including stage annotations of the form $n \cdot S$, so that all annotations are of the form $n \cdot \upsilon + m$, where $m$ is the number of "hats". Although this causes the time complexity of their \textsc{RecCheck} procedure to be exponential in the number of stage variables, the \cofixpoints written in practice are not so complicated as to be meaningfully detrimental compared to the benefits that linear sized types would bring. The set of typeable functions would be expanded even further, and functions such as \texttt{append} and therefore \texttt{quicksort} could be typed as size-preserving. If successor sized types prove to be practically useable in Coq, augmenting the type system to linear sized types would be a valuable consideration.
+Whereas our successor sized types uses a size algebra that only has a successor operation, \textit{linear} sized types in \CIChatl extends the algebra by including stage annotations of the form $n \cdot S$, so that all annotations are of the form $n \cdot \upsilon + m$, where $m$ is the number of "hats". Although this causes the time complexity of their \textsc{RecCheck} procedure to be exponential in the number of stage variables, the \cofixpoints written in practice are not so complicated as to be meaningfully detrimental compared to the benefits that linear sized types would bring. The set of typeable (and therefore terminating or productive) functions would be expanded even further; functions such as \texttt{append} and \texttt{quicksort} could be typed as size-preserving in addition to being terminating. If successor sized types prove to be practically useable in Coq, augmenting the type system to linear sized types would be a valuable consideration.
 
-Well-founded sized types in \CIChatsub \cite{wellfounded} are yet another extension of successor sized types. Although never published, the paper contains a type system, some metatheoretical results, and a size inference algorithm. In essence, it preserves subject reduction for coinductive constructions, and also expands the set of typeable functions.
+Well-founded sized types in \CIChatsub \cite{wellfounded} are yet another extension of successor sized types. This unpublished manuscript contains a type system, some metatheoretical results, and a size inference algorithm. In essence, it preserves subject reduction for coinductive constructions, and also expands the set of typeable functions.
+
+As for implementations of sized types in proof assistants in practice, there is MiniAgda \cite{miniagda, miniagda2}, based on Agda. The most important difference from the user perspective is that sizes are explicit and annotations are supplied by the user.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{biblio}
 
-\clearpage
+% TODO: Turn on when submitting
+%\clearpage
 \appendix
-\section{Examples}\label{examples}
 
 \section{Supplementary Figures}\label{figures}
 
 \input{definitions/typing-rules/sets.tex}
-\input{definitions/inference/metafunctions.tex}
 
-Figure~\ref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relations on universes. They desribe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. Figure~\ref{fig:metafunctions2} lists the various metafunctions introduced in Section~\ref{algorithm} with their signatures and a short description.
+\autoref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relations on universes. They desribe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively.
 
-\section{TODOs}
+\begin{comment}
+\section{Notes and TODOs}
 \begin{itemize}
-    \item Formalize the functions \texttt{compare\_head\_gen\_leq\_with} and \texttt{eqappr} from the Coq kernel for the benefit of explaining $\preceq$. This would probably go in the Appendix.
-    \item Conditionally display paper/thesis material.
     \item Instructions for supplementary material:
     \begin{enumerate}
         \item \texttt{sudo apt install opam}
@@ -419,7 +497,9 @@ Figure~\ref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relat
         \item \texttt{make COQUSERFLAGS="-set 'Sized Typing'" coqlib}
         \item \texttt{bin/coqtop} or \texttt{bin/coqtop.byte}
     \end{enumerate}
-    \item \st{Commas after i.e., e.g.} No. It's ugly
-    \item Design decisions, untypeable programs, etc.
+    \item Briefly describe changes needed to use linear sized types (this probably means actually reading the paper)
+    \item Examples: Classes of programs that don't typecheck; walkthrough of algorithm for one example (need a different sort of semantics to express this usefully...); useful programs that now typecheck and preserve size
+    \item Formalize the functions \texttt{compare\_head\_gen\_leq\_with} and \texttt{eqappr} from the Coq kernel for the benefit of explaining $\preceq$. This would probably go in the Appendix.
 \end{itemize}
+\end{comment}
 \end{document}

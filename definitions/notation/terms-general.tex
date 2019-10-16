@@ -1,6 +1,7 @@
 \begin{figure}
 \centering
 \begin{align*}
+\overline{\,\cdot\,} &\Coloneqq \,\cdot\, | \,\cdot\, \overline{\,\cdot\,} &\text{sequences} \\
 S &\Coloneqq \mathcal{V} \mid \mathcal{P} \mid \widehat{S} \mid \infty &\text{stage annotations} \\
 U &\Coloneqq \text{Prop} \mid \text{Set} \mid \text{Type}_n &\text{set of universes}
 \end{align*}
@@ -8,23 +9,23 @@ U &\Coloneqq \text{Prop} \mid \text{Set} \mid \text{Type}_n &\text{set of univer
 T[\alpha] &\Coloneqq (T[\alpha]) \\
     &\mid U
         &\textit{universes}\\
-    &\mid \mathcal{X} \mid \mathcal{X}^{\vec{a}}
+    &\mid \mathcal{X} \mid \mathcal{X}^{\langle \alpha \rangle}
         &\textit{variables} \\
     &\mid \lambda \mathcal{X}: T^\circ. T[\alpha]
         &\textit{abstraction} \\
     &\mid T[\alpha] T[\alpha]
         &\textit{application} \\
     &\mid \Pi \mathcal{X}: T[\alpha]. T[\alpha]
-        &\textit{product} \\
+        &\textit{function types} \\
     &\mid \text{let}\ \mathcal{X} : T^\circ \coloneqq T[\alpha] \ \text{in}\ T[\alpha]
-        &\textit{let-in} \\
-    &\mid \mathcal{I}^a
+        &\textit{let-in (definitions)} \\
+    &\mid \mathcal{I}^\alpha
         &\textit{(co)inductive types} \\
     &\mid \mathcal{C}
         &\textit{(co)ind. constructors} \\
     &\mid \text{case}_{T^\circ} \ T[\alpha] \ \text{of} \ \langle \mathcal{C} \Rightarrow T[\alpha] \rangle
         &\textit{case analysis} \\
-    &\mid \text{fix}_{\vec{m}, n} \ \langle \mathcal{X}: T^* \coloneqq T[\alpha] \rangle
+    &\mid \text{fix}_{\langle n \rangle, m} \ \langle \mathcal{X}: T^* \coloneqq T[\alpha] \rangle
         &\textit{fixpoint} \\
     &\mid \text{cofix}_{n} \ \langle \mathcal{X}: T^* \coloneqq T[\alpha] \rangle
         &\textit{cofixpoint}

@@ -2,51 +2,42 @@
 \centering
 
 \AxiomC{}
-\RightLabel{(wf-nil)}
-\UnaryInfC{$\text{WF}([], [], [])$}
+\RightLabel{\defrule{wf-nil}}
+\UnaryInfC{$\text{WF}(\square, \square, \square)$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\sgg \vdash t: \omega$}
-\AxiomC{$\omega \in U$}
+\AxiomC{$\sgg \vdash t: \varw$}
 \AxiomC{$x \notin \Gamma$}
-\RightLabel{(wf-local-assum)}
-\TrinaryInfC{$\WF{\Sigma, \Gamma_G, \Gamma (x:t)}$}
+\RightLabel{\defrule{wf-local-assum}}
+\BinaryInfC{$\WF{\Sigma, \Gamma_G, \Gamma (x:t)}$}
 \DisplayProof
 
 \hfill\break
 
 \AxiomC{$\sgg \vdash e: t$}
 \AxiomC{$x \notin \Gamma$}
-\RightLabel{(wf-local-def)}
+\RightLabel{\defrule{wf-local-def}}
 \BinaryInfC{$\WF{\Sigma, \Gamma_G, \Gamma (x:t \coloneqq e)}$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\sgg \vdash t: \omega$}
-\AxiomC{$\omega \in U$}
+\AxiomC{$\sgg \vdash t: \varw$}
 \AxiomC{$x \notin \Gamma_G$}
-\RightLabel{(wf-global-assum)}
-\TrinaryInfC{$\WF{\Sigma, \Gamma_G (\text{Assum}\ x : |t|^\infty), []}$}
+\RightLabel{\defrule{wf-global-assum}}
+\BinaryInfC{$\WF{\Sigma, \Gamma_G (\text{Assum}\ x : |t|^\infty.), \square}$}
 \DisplayProof
 
 \hfill\break
 
 \AxiomC{$\sgg \vdash e: t$}
 \AxiomC{$x \notin \Gamma_G$}
-\RightLabel{(wf-global-def)}
-\BinaryInfC{$\WF{\Sigma, \Gamma_G (\text{Def}\ x : |t|^\iota \coloneqq |e|^\infty), []}$}
+\RightLabel{\defrule{wf-global-def}}
+\BinaryInfC{$\WF{\Sigma, \Gamma_G (\text{Def}\ x : |t|^\iota \coloneqq |e|^\infty.), \square}$}
 \DisplayProof
 
-\hfill\break
-
-\AxiomC{$\sgg \vdash \dots$}
-\RightLabel{(wf-sig)}
-\UnaryInfC{$\WF{\Sigma (\Delta_p \vdash \langle I_i\ \vec{p}: \Pi\Delta_{a_i}. \omega_i \rangle \coloneqq \langle c_j: \Pi\Delta_j. I_{k_j}\ \vec{p}\ \vec{t}_j \rangle), \Gamma_G, []}$}
-\DisplayProof
-
-\caption{Well-formedness of environments and signatures (excerpt)}
+\caption{Well-formedness of environments}
 \label{fig:wf}
 \end{figure}

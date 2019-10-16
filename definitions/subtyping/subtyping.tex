@@ -4,20 +4,20 @@
 \UnaryInfC{$\Prop \leq \Set \leq$ Type$_1$}
 \DisplayProof
 \AxiomC{}
-\RightLabel{(st-cumul)}
+\RightLabel{\defrule{st-cumul}}
 \UnaryInfC{$\Type{i} \leq$ Type$_{i+1}$}
 \DisplayProof
 
 \hfill\break
 
 \AxiomC{$t \approx u$}
-\RightLabel{(st-conv)}
+\RightLabel{\defrule{st-conv}}
 \UnaryInfC{$t \leq u$}
 \DisplayProof
 \quad
 \AxiomC{$t \leq u$}
 \AxiomC{$u \leq v$}
-\RightLabel{(st-trans)}
+\RightLabel{\defrule{st-trans}}
 \BinaryInfC{$t \leq v$}
 \DisplayProof
 
@@ -25,7 +25,7 @@
 
 \AxiomC{$t_2 \approx t_1$}
 \AxiomC{$u_1 \leq u_2$}
-\RightLabel{(st-prod)}
+\RightLabel{\defrule{st-prod}}
 \BinaryInfC{$\Pi x: t_1. u_1 \leq \Pi y: t_2. u_2$}
 \DisplayProof
 
@@ -33,7 +33,7 @@
 
 \AxiomC{$t_1 \leq t_2$}
 \AxiomC{$u_1 \approx u_2$}
-\RightLabel{(st-app)}
+\RightLabel{\defrule{st-app}}
 \BinaryInfC{$t_1 u_1 \leq t_2 u_2$}
 \DisplayProof
 
@@ -41,7 +41,7 @@
 
 \AxiomC{$I$ inductive}
 \AxiomC{$s_1 \sqsubseteq s_2$}
-\RightLabel{(st-ind)}
+\RightLabel{\defrule{st-ind}}
 \BinaryInfC{$I^{s_1} \leq I^{s_2}$}
 \DisplayProof
 
@@ -49,7 +49,7 @@
 
 \AxiomC{$I$ coinductive}
 \AxiomC{$s_2 \sqsubseteq s_1$}
-\RightLabel{(st-coind)}
+\RightLabel{\defrule{st-coind}}
 \BinaryInfC{$I^{s_1} \leq I^{s_2}$}
 \DisplayProof
 \caption{Subtyping rules}

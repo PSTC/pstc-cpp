@@ -20,7 +20,6 @@
 \usepackage{mathtools}
 \usepackage{stmaryrd}
 \usepackage{minted}
-\usepackage{hyperref}
 \usepackage{bussproofs}
 \usepackage{cuted}
 \usepackage{hyphenat}
@@ -29,11 +28,27 @@
 \usepackage[shortcuts]{extdash}
 \usepackage{soul}
 \usepackage{enumitem}
+\usepackage{balance}
+
+% Change list indent to 1 em so that bullets are flush with paragraph indents
 \setlist{leftmargin=1em}
+% Use \autoref for references with prefixes
+\def\sectionautorefname{Section}
+\def\subsectionautorefname{Subsection}
+\def\subsubsectionautorefname{Subsubsection}
+\def\figureautorefname{Figure}
+\def\tableautorefname{Table}
+\def\appendixautorefname{Appendix}
+% Coloured reference links
+\hypersetup{colorlinks = true}
 
-\hypersetup{colorlinks=true}
-
+% rule hyperlinks
+\newcommand{\defrule}[1]{\phantomsection\label{#1}(#1)}
+\newcommand{\defnamerule}[2]{\phantomsection\label{#1}(#2)}
+\newcommand{\refrule}[1]{\hyperref[#1]{Rule (#1)}}
+\newcommand{\refnorule}[1]{\hyperref[#1]{(#1)}}
 % langs
+\newcommand{\lang}{CIC$\widehat{*}$\xspace}
 \newcommand{\CIChat}{CIC$\widehat{~}$\xspace}
 \newcommand{\CIChatbar}{CIC$\widehat{\text{\underline{\:\:}}}$\xspace}
 \newcommand{\Fhat}{F$\widehat{~}$\xspace}
@@ -43,7 +58,6 @@
 % metafunctions (for math envs)
 \newcommand{\dom}[1]{\text{dom}(#1)}
 \newcommand{\SV}[1]{\text{SV}(#1)}
-\newcommand{\SA}[1]{\text{SA}(#1)}
 \newcommand{\WF}[1]{\text{WF}(#1)}
 \newcommand{\whnf}[1]{\textsc{whnf}(#1)}
 \newcommand{\fresh}[1]{\textsc{fresh}(#1)}
@@ -85,14 +99,6 @@
 \newcommand{\corecursive}{(co)\-recursive\xspace}
 \newcommand{\cofixpoint}{(co)\-fix\-point\xspace}
 \newcommand{\cofixpoints}{(co)\-fix\-points\xspace}
-% language name ideas
-\newcommand{\lang}{}
-\renewcommand{\lang}{CoqS}
-\renewcommand{\lang}{SuccCoq}
-\renewcommand{\lang}{Coqqus}
-\renewcommand{\lang}{Poule}
-\renewcommand{\lang}{Hog}
-\renewcommand{\lang}{CIC$\widehat{*}$\xspace}
 
 \hyphenation{para-metrized}
 \hyphenation{re-duc-tion}
