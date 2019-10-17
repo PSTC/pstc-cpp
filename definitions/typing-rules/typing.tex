@@ -3,70 +3,25 @@
 
 \hfill\break
 
-\begin{tabular}{c c}
-    \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(x:t) \in \Gamma$}
-    \RightLabel{\defrule{var-assum}}
-    \BinaryInfC{$\sgg \vdash x:t$}
-    \DisplayProof
-    &
-    \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(x:t \coloneqq e) \in \Gamma$}
-    \AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
-    \RightLabel{\defrule{var-def}}
-    \TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t$}
-    \DisplayProof
-    \\
-    \\
-    \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(\text{Assum}\ x:t.) \in \Gamma_G$}
-    \RightLabel{\defrule{const-assum}}
-    \BinaryInfC{$\sgg \vdash x:t$}
-    \DisplayProof
-    &
-    \AxiomC{$\WF{\sgg}$}
-    \AxiomC{$(\text{Def}\ x:t \coloneqq e.) \in \Gamma_G$}
-    \AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
-    \RightLabel{\defrule{const-def}}
-    \TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t[\iota \coloneqq s]$}
-    \DisplayProof
-\end{tabular}
-
-\hfill\break
-
 \AxiomC{$\WF{\sgg}$}
-\AxiomC{$(\varw_1, \varw_2) \in \text{Axioms}$}
-\RightLabel{\defrule{univ}}
-\BinaryInfC{$\sgg \vdash \varw_1 : \varw_2$}
+\AxiomC{$(x:t \coloneqq e) \in \Gamma$}
+\AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
+\RightLabel{\defrule{var-def}}
+\TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t$}
 \DisplayProof
-\qquad
-\AxiomC{$\sgg \vdash e:t$}
-\AxiomC{$u:\varw$}
-\AxiomC{$t \leq u$}
-\RightLabel{\defrule{conv}}
-\TrinaryInfC{$\sgg \vdash e:u$}
+~
+\AxiomC{$\WF{\sgg}$}
+\AxiomC{$(\text{Def}\ x:t \coloneqq e.) \in \Gamma_G$}
+\AxiomC{$\|\overline{s_i}\| = \llbracket e \rrbracket$}
+\RightLabel{\defrule{const-def}}
+\TrinaryInfC{$\sgg \vdash x^{\langle s_i \rangle} : t[\iota \coloneqq s]$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\sgg \vdash t : \varw_1$}
-\AxiomC{$\sgg (x:t) \vdash u : \varw_2$}
-\AxiomC{$(\varw_1, \varw_2, \varw_3) \in \text{Rules}$}
-\RightLabel{\defrule{prod}}
-\TrinaryInfC{$\sgg \vdash \Pi x:t.u : \varw_3$}
-\DisplayProof
-\qquad
 \AxiomC{$\sgg (x:t) \vdash e:u$}
 \RightLabel{\defrule{abs}}
 \UnaryInfC{$\sgg \vdash \lambda x:|t|.e : \Pi x:t.u$}
-\DisplayProof
-
-\hfill\break
-
-\AxiomC{$\sgg \vdash e_1 : \Pi x:t.u$}
-\AxiomC{$\sgg \vdash e_2 : t$}
-\RightLabel{\defrule{app}}
-\BinaryInfC{$\sgg \vdash e_1 e_2 : u[x \coloneqq e_2]$}
 \DisplayProof
 \qquad
 \AxiomC{$\sgg \vdash e_1:t$}
@@ -118,6 +73,6 @@
 \UnaryInfC{$\sgg \vdash \cofix{m}{f_k}{|t_k|^*}{e_k} : t_m[\upsilon_m \coloneqq s]$}
 \DisplayProof
 \end{tabular}
-\caption{Typing rules}
+\caption{Typing rules (excerpt)}
 \label{fig:typing}
 \end{figure*}

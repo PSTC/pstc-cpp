@@ -9,8 +9,7 @@ let rec RecCheckLoop <$C_2$> <$V_{\text{outer}}$> <$\overline{\rho_k}$> <$\overl
       let <$C_{3k}$> = RecCheck <$C_2$> <$\rho_k$> pv<$_k$> sv<$_k$>
       in <$\bigcup\limits_k C_{3k}$>
   with RecCheckFail <$V$> ->
-      <$\mathcal{P}$> := <$\mathcal{P} \setminus V$>;
-      RecCheckLoop <$C_2$> <$\overline{\rho_k}$> <$\overline{t_k}$> <$\overline{e_k}$>
+      <$\mathcal{P}$> := <$\mathcal{P} \setminus V$>; RecCheckLoop <$C_2$> <$\overline{\rho_k}$> <$\overline{t_k}$> <$\overline{e_k}$>
 \end{minted}
 
 \caption{Pseudocode implementation of \textsc{RecCheckLoop}}
