@@ -23,10 +23,10 @@ In the proof assistant Coq, termination and productivity are enforced by a \text
 
 \begin{minted}{coq}
 Fixpoint add n m : nat :=
-    match n with
-    | O => m
-    | S p => add p m
-    end.
+  match n with
+  | O => m
+  | S p => S (add p m)
+  end.
 Variable A : Type.
 CoFixpoint const a : Stream A := Cons a (const a).
 \end{minted}
@@ -39,15 +39,15 @@ Furthermore, changes in the structural form of functions used in \cofixpoints ca
 
 \begin{minted}{coq}
 Fixpoint minus n m :=
-    match n m with
-    | O, _ | _, O => n
-    | S n', S m' => minus n' m'
-    end.
+  match n, m with
+  | O, _ | _, O => n
+  | S n', S m' => minus n' m'
+  end.
 Fixpoint div n m :=
-    match n with
-    | O => O
-    | S n' => S (div (minus n' m) m)
-    end.
+  match n with
+  | O => O
+  | S n' => S (div (minus n' m) m)
+  end.
 \end{minted}
 
 If we replace \texttt{| O, \_ => n} with \texttt{| O, \_ => O} in \texttt{minus}, it does not change its behaviour, but since it can return \texttt{O} which is not a structurally-smaller term of \texttt{n} in the recursive call to \texttt{div}, the guard predicate is no longer satisfied. Then acceptance of \texttt{div} depends a function external to it, which can lead to difficulty in debugging for larger programs. Furthermore, the guard predicate is unaware of the obvious fact that \texttt{minus} never returns a \texttt{nat} larger than its first argument, which the user would have to write a proof for in order for \texttt{div} to be accepted with our alternate definition of \texttt{minus}.
@@ -425,9 +425,9 @@ Definition quicksort:
     match l with
     | Nil => Nil
     | Cons _ hd tl => append A
-      (quicksort' (filter Nat leb tl))
+      (quicksort' (filter Nat (gtb hd) tl))
       (Cons Nat hd
-        (quicksort' (filter Nat gtb tl)))
+        (quicksort' (filter Nat (leb hd) tl)))
     end.
 \end{minted}
 Even though the output list has the same length as the input list, there is no way to add sizes in our current size algebra, so the return type of \texttt{append} is not annotated with the same size as the input type of \texttt{quicksort}. While asserting that \texttt{quicksort} does not change the length of the list requires additional proof, the fact that it \textit{terminates} is given to us by virtue of being typeable.
