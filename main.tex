@@ -447,18 +447,26 @@ Fail Definition gcd: Nat -> Nat -> Nat :=
 
 Because \texttt{modulo} can only determine that the return type is at most as large as its second argument, the first argument to the recursive call in \texttt{gcd'} has a type with the same size as \texttt{a}, and is not deemed to decrease on its first argument.
 
-In the implementation in Coq, programs that type check only with sized types can be declared by first turning off guard checking using the existing flag, then turning on sized typing.
+The above examples are annotated \lang implementations.
+In our Coq implementation, we write the Gallina equivalents of each function,
+and size inference infers the annotations for the above examples.
+
+In our implementation, we can separately enable or disable syntactic
+guard checking and sized type checking.
 
 \begin{minted}{coq}
 Unset Guard Checking.
 Set Sized Typing.
 \end{minted}
 
+This way, we can type check either: (1) programs that type check only with sized
+types, or (2) programs that type check only with syntactic guard checking.
+
 \section{Related Work}\label{related}
 
 This work is based on \CIChat \cite{cic-hat}, which describes CIC with sized types and a size inference algorithm. It assumes that position annotations are given by the user, requires each parameter of \coinductive types to be assigned polarities, and deals only with terms. We have added on top of it global declarations, constants and variables annotated by a vector of stage annotations, their $\delta$\-//$\Delta$\-/reductions, a let-in construction, an explicit treatment of mutually-defined \coinductive types and \cofixpoints, and an intermediate procedure \textsc{RecCheckLoop} to handle missing position annotations, while removing parameter polarities and subtyping rules based on these polarities.
 
-The language \CIChatbar \cite{cic-hat-bar} is similar \CIChat, described in greater detail, but with one major difference: \CIChatbar disallows stage variables in the bodies of abstractions, in the arguments of applications, and in case analysis branches, making \CIChatbar a strict subset of \CIChat. Any stage annotations found in these locations must be set to $\infty$. This solves the problem of knowing which stage annotations to use when using a variable defined as, for instance, an inductive type, simply by disallowing stage annotations in these definitions. However, this prevents us from using a variable as the \corecursive type of a \cofixpoint, and forces these types to be literal \coinductive types. In practice, such as in Coq's default theorems and libraries, aliases are often defined for \coinductive types, so we have worked around it with annotated variables and constants.
+The language \CIChatbar \cite{cic-hat-bar} is similar to \CIChat, described in greater detail, but with one major difference: \CIChatbar disallows stage variables in the bodies of abstractions, in the arguments of applications, and in case analysis branches, making \CIChatbar a strict subset of \CIChat. Any stage annotations found in these locations must be set to $\infty$. This solves the problem of knowing which stage annotations to use when using a variable defined as, for instance, an inductive type, simply by disallowing stage annotations in these definitions. However, this prevents us from using a variable as the \corecursive type of a \cofixpoint, and forces these types to be literal \coinductive types. In practice, such as in Coq's default theorems and libraries, aliases are often defined for \coinductive types, so we have worked around it with annotated variables and constants.
 
 The implementation of \textsc{RecCheck} comes from \Fhat \cite{f-hat}, an extension of System F with type-based termination used sized types. Rules relating to coinductive constructions and cofixpoints comes from the natural extension of \CChatomega \cite{cc-hat-omega}, which describes only infinite streams. Additionally, the judgement syntax for describing the size inference algorithm comes from \CChatomega and \CIChatl \cite{cic-hat-l}.
 
