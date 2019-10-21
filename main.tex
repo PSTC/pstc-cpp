@@ -6,6 +6,7 @@
 %\fancyhead[L]{\shorttitle}
 %\fancyhead[R]{\shortauthors}
 \renewcommand\footnotetextcopyrightpermission[1]{}
+\newcommand{\inmaterials}{in the anonymous supplementary materials}
 
 \input{pre.tex}
 
@@ -466,6 +467,19 @@ Whereas our successor sized types uses a size algebra that only has a successor 
 Well-founded sized types in \CIChatsub \cite{wellfounded} are yet another extension of successor sized types. This unpublished manuscript contains a type system, some metatheoretical results, and a size inference algorithm. In essence, it preserves subject reduction for coinductive constructions, and also expands the set of typeable functions.
 
 As for implementations of sized types in proof assistants in practice, there is MiniAgda \cite{miniagda, miniagda2}, based on Agda. The most important difference from the user perspective is that sizes are explicit and annotations are supplied by the user.
+
+\section{Conclusion}
+\label{sec:conclusion}
+We have presented a design and implementation of sizes types for Coq.
+Our work extends the core language and type checking algorithm of prior
+theoretical work on sized types for CIC with pragmatic features found in
+Gallina, such as global definitions, and extends the inference algorithm to
+infer sizes over completely unannotated Gallina terms to enable backwards
+compatibility.
+We implement the design presented in this paper as an extension to Coq’s kernel,
+which can be found \inmaterials.
+The design and implementation can be used alone or in conjunction with syntactic
+guard checking to maximize typability and compatibility.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{biblio}
