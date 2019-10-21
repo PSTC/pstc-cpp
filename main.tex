@@ -480,7 +480,7 @@ As for implementations of sized types in proof assistants in practice, there is 
 \input{definitions/typing-rules/typing-extra.tex}
 
 \autoref{fig:sugar} lists the syntactic sugar we use in this work for writing terms and metafunctions on terms. \autoref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relations on universes. They desribe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. \autoref{fig:typing-extra} gives the typing rules for assumptions, universes, products, applications, and convertibility, which are all common to CIC.
-
+\begin{comment}
 \section{Notes and TODOs}
 \begin{itemize}
     \item Instructions for supplementary material:
@@ -497,4 +497,5 @@ As for implementations of sized types in proof assistants in practice, there is 
     \item Examples: Classes of programs that don't typecheck; walkthrough of algorithm for one example (need a different sort of semantics to express this usefully...); useful programs that now typecheck and preserve size
     \item Formalize the functions \texttt{compare\_head\_gen\_leq\_with} and \texttt{eqappr} from the Coq kernel for the benefit of explaining $\preceq$. This would probably go in the Appendix.
 \end{itemize}
+\end{comment}
 \end{document}
