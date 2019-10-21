@@ -486,15 +486,23 @@ guard checking to maximize typability and compatibility.
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{biblio}
 
-\begin{appendices}
 
-\section{Supplementary Figures}\label{figures}
-
+\input{definitions/typing-rules/typing-extra.tex}
 \input{definitions/notation/sugar.tex}
 \input{definitions/typing-rules/sets.tex}
-\input{definitions/typing-rules/typing-extra.tex}
+
+\begin{appendices}
+\begin{samepage}
+\section{Supplementary Figures}\label{figures}
+\FigExtra[!th]
+\FloatBarrier
+\FigSugar[t]
+\FigPTSSets[t]
 
 \autoref{fig:sugar} lists the syntactic sugar we use in this work for writing terms and metafunctions on terms. \autoref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relations on universes. They desribe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. \autoref{fig:typing-extra} gives the typing rules for assumptions, universes, products, applications, and convertibility, which are all common to CIC.
+
+\FloatBarrier
+\end{samepage}
 
 \begin{comment}
 \section{Notes and TODOs}

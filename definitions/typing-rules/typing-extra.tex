@@ -1,50 +1,52 @@
-\begin{figure*}
-\centering
+\newcommand{\FigExtra}[1][th]{
+  \begin{figure*}[#1]
+    \centering
 
-\AxiomC{$\WF{\sgg}$}
-\AxiomC{$(x:t) \in \Gamma$}
-\RightLabel{\defrule{var-assum}}
-\BinaryInfC{$\sgg \vdash x:t$}
-\DisplayProof
-\qquad
-\AxiomC{$\WF{\sgg}$}
-\AxiomC{$(\text{Assum}\ x:t.) \in \Gamma_G$}
-\RightLabel{\defrule{const-assum}}
-\BinaryInfC{$\sgg \vdash x:t$}
-\DisplayProof
+    \AxiomC{$\WF{\sgg}$}
+    \AxiomC{$(x:t) \in \Gamma$}
+    \RightLabel{\defrule{var-assum}}
+    \BinaryInfC{$\sgg \vdash x:t$}
+    \DisplayProof
+    \qquad
+    \AxiomC{$\WF{\sgg}$}
+    \AxiomC{$(\text{Assum}\ x:t.) \in \Gamma_G$}
+    \RightLabel{\defrule{const-assum}}
+    \BinaryInfC{$\sgg \vdash x:t$}
+    \DisplayProof
 
-\hfill\break
+    \hfill\break
 
-\AxiomC{$\WF{\sgg}$}
-\AxiomC{$(\varw_1, \varw_2) \in \text{Axioms}$}
-\RightLabel{\defrule{univ}}
-\BinaryInfC{$\sgg \vdash \varw_1 : \varw_2$}
-\DisplayProof
-\qquad
-\AxiomC{$\sgg \vdash e:t$}
-\AxiomC{$u:\varw$}
-\AxiomC{$t \leq u$}
-\RightLabel{\defrule{conv}}
-\TrinaryInfC{$\sgg \vdash e:u$}
-\DisplayProof
+    \AxiomC{$\WF{\sgg}$}
+    \AxiomC{$(\varw_1, \varw_2) \in \text{Axioms}$}
+    \RightLabel{\defrule{univ}}
+    \BinaryInfC{$\sgg \vdash \varw_1 : \varw_2$}
+    \DisplayProof
+    \qquad
+    \AxiomC{$\sgg \vdash e:t$}
+    \AxiomC{$u:\varw$}
+    \AxiomC{$t \leq u$}
+    \RightLabel{\defrule{conv}}
+    \TrinaryInfC{$\sgg \vdash e:u$}
+    \DisplayProof
 
-\hfill\break
+    \hfill\break
 
-\AxiomC{$\sgg \vdash t : \varw_1$}
-\AxiomC{$\sgg (x:t) \vdash u : \varw_2$}
-\AxiomC{$(\varw_1, \varw_2, \varw_3) \in \text{Rules}$}
-\RightLabel{\defrule{prod}}
-\TrinaryInfC{$\sgg \vdash \Pi x:t.u : \varw_3$}
-\DisplayProof
+    \AxiomC{$\sgg \vdash t : \varw_1$}
+    \AxiomC{$\sgg (x:t) \vdash u : \varw_2$}
+    \AxiomC{$(\varw_1, \varw_2, \varw_3) \in \text{Rules}$}
+    \RightLabel{\defrule{prod}}
+    \TrinaryInfC{$\sgg \vdash \Pi x:t.u : \varw_3$}
+    \DisplayProof
 
-\hfill\break
+    \hfill\break
 
-\AxiomC{$\sgg \vdash e_1 : \Pi x:t.u$}
-\AxiomC{$\sgg \vdash e_2 : t$}
-\RightLabel{\defrule{app}}
-\BinaryInfC{$\sgg \vdash e_1 e_2 : u[x \coloneqq e_2]$}
-\DisplayProof
+    \AxiomC{$\sgg \vdash e_1 : \Pi x:t.u$}
+    \AxiomC{$\sgg \vdash e_2 : t$}
+    \RightLabel{\defrule{app}}
+    \BinaryInfC{$\sgg \vdash e_1 e_2 : u[x \coloneqq e_2]$}
+    \DisplayProof
 
-\caption{Typing rules common to CIC and \lang}
-\label{fig:typing-extra}
-\end{figure*}
+    \caption{Typing rules common to CIC and \lang}
+    \label{fig:typing-extra}
+  \end{figure*}
+}
