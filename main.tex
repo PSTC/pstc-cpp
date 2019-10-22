@@ -479,37 +479,37 @@ Well-founded sized types in \CIChatsub \cite{wellfounded} are yet another extens
 
 \section{Conclusion}
 \label{sec:conclusion}
-We have presented a design and implementation of sizes types for Coq.
+We have presented a design and implementation of sized types for Coq.
 Our work extends the core language and type checking algorithm of prior
 theoretical work on sized types for CIC with pragmatic features found in
 Gallina, such as global definitions, and extends the inference algorithm to
-infer sizes over completely unannotated Gallina terms to enable backwards
+infer sizes from completely unannotated Gallina terms to enable backwards
 compatibility.
 We implement the design presented in this paper as an extension to Coq's kernel,
 which can be found \inmaterials.
 The design and implementation can be used alone or in conjunction with syntactic
-guard checking to maximize typability and compatibility.
+guard checking to maximize typeability and compatibility.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{biblio}
 
-\clearpage
+\begin{samepage}
+\begin{appendices}
 
 \input{definitions/typing-rules/typing-extra.tex}
 \input{definitions/notation/sugar.tex}
 \input{definitions/typing-rules/sets.tex}
-
-\begin{appendices}
-\begin{samepage}
-\section{Supplementary Figures}\label{figures}
 \FigExtra[!th]
 \FloatBarrier
 \FigSugar[t]
 \FigPTSSets[t]
 
+\section{Supplementary Figures}\label{figures}
+
 \autoref{fig:sugar} lists the syntactic sugar we use in this work for writing terms and metafunctions on terms. \autoref{fig:axruel} lists the sets Axioms, Rules, and Elims, which are relations on universes. They desribe how universes are typed, how products are typed, and what eliminations are allowed in case analyses, respectively. \autoref{fig:typing-extra} gives the typing rules for assumptions, universes, products, applications, and convertibility, which are all common to CIC.
 
 \FloatBarrier
+\end{appendices}
 \end{samepage}
 
 \begin{comment}
@@ -530,5 +530,4 @@ guard checking to maximize typability and compatibility.
     \item Formalize the functions \texttt{compare\_head\_gen\_leq\_with} and \texttt{eqappr} from the Coq kernel for the benefit of explaining $\preceq$. This would probably go in the Appendix.
 \end{itemize}
 \end{comment}
-\end{appendices}
 \end{document}
