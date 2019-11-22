@@ -8,12 +8,16 @@
 
 \author{Jonathan Chan}
 \orcid{0000-0003-0830-3180}
-\affiliation{University of British Columbia}
+\affiliation{
+  \institution{University of British Columbia}
+}
 \email{jon@alumni.ubc.ca}
 
 \author{William J. Bowman}
-\affiliation{University of British Columbia}
-\email{wjb@williamjbowman.com}
+\affiliation{
+  \institution{University of British Columbia}
+}
+\email{wilbowma@cs.ubc.ca}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -73,6 +77,7 @@
 \newcommand{\branchtype}[5]{\textsc{branchType}(#1, #2, #3, #4, #5)}
 \newcommand{\indsig}[1]{\textsc{indSig}(#1)}
 \newcommand{\constrsig}[1]{\textsc{constrSig}(#1)}
+\newcommand{\caseStage}[2]{\textsc{caseStage}(#1, #2)}
 \newcommand{\decompose}[2]{\textsc{decompose}(#1, #2)}
 \newcommand{\shift}[1]{\textsc{shift}(#1)}
 \newcommand{\setrecstars}[2]{\textsc{setRecStars}(#1, #2)}
@@ -80,7 +85,7 @@
 \newcommand{\getrecvar}[2]{\textsc{getRecVar}(#1, #2)}
 \newcommand{\getcorecvar}[1]{\textsc{getCorecVar}(#1)}
 \newcommand{\getposvars}[2]{\textsc{getPosVars}(#1, #2)}
-\newcommand{\RecCheckLoop}[5]{\textsc{RecCheckLoop}(#1, #2, #3, #4, #5)}
+\newcommand{\RecCheckLoop}[4]{\textsc{RecCheckLoop}(#1, #2, #3, #4)}
 % terms (for math envs)
 \newcommand{\Prop}{\text{Prop}}
 \newcommand{\Set}{\text{Set}}

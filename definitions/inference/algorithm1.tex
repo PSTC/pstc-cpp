@@ -96,35 +96,29 @@
 
 \AxiomC{$\cgg \vdash e^\circ \rightsquigarrow C_1, e \Rightarrow^* I_k^s\ \overline{p}\ \overline{a} \qquad C_1, \Gamma_G, \Gamma \vdash \wp^\circ \rightsquigarrow C_2, \wp \Rightarrow t_p$}
 \noLine
-\UnaryInfC{$\Pi \_ : \varw_k = \indtype{\Sigma}{I_k} \qquad (\_, \varw) = \decompose{t_p}{\|\Delta_{a_k}\| + 1} \qquad \elim{\varw_k}{\varw}{I_k} \qquad \overline{\upsilon_i} = \fresh{\inds{I_k}}$}
+\UnaryInfC{$\Pi \_ : \varw_k = \indtype{\Sigma}{I_k} \qquad (\_, \varw) = \decompose{t_p}{\|\Delta_{a_k}\| + 1} \qquad \elim{\varw_k}{\varw}{I_k}$}
 \noLine
-\UnaryInfC{$C_3 = C_2 \cup \set{\hat{\upsilon}_k \sqsubseteq s} \cup (t_p \preceq \motivetype{\Sigma}{\overline{p}}{\varw}{I_k^s}) \qquad C_3, \Gamma_G, \Gamma \vdash e^\circ_j \Leftarrow \branchtype{\Sigma}{\overline{p}}{c_j}{\overline{\upsilon_i}}{\wp} \rightsquigarrow C_{4j}, e_j$}
+\UnaryInfC{$\overline{\upsilon_i} = \fresh{\inds{I_k}} \qquad C_3 = \caseStage{I_k^s}{\hat{\upsilon}_k} \qquad C_4 = t_p \preceq \motivetype{\Sigma}{\overline{p}}{\varw}{I_k^{\hat{\upsilon}_k}}$}
+\noLine
+\UnaryInfC{$C_5 = C_2 \cup C_3 \cup C_4 \qquad C_5, \Gamma_G, \Gamma \vdash e^\circ_j \Leftarrow \branchtype{\Sigma}{\overline{p}}{c_j}{\overline{\upsilon_i}}{\wp} \rightsquigarrow C_{6j}, e_j \qquad C_6 = \bigcup_j C_{6j}$}
 \RightLabel{\defrule{a-case}}
-\UnaryInfC{$\cgg \vdash \caseof{\wp^\circ}{e^\circ}{c_j}{e_j^\circ} \rightsquigarrow \bigcup\limits_j C_{4j}, \caseof{|\wp|}{e}{c_j}{e_j} \Rightarrow \wp\overline{a}e$}
+\UnaryInfC{$\cgg \vdash \caseof{\wp^\circ}{e^\circ}{c_j}{e_j^\circ} \rightsquigarrow C_6, \caseof{|\wp|}{e}{c_j}{e_j} \Rightarrow \wp\overline{a}e$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad V_{\text{outer}} = \mathcal{V}$}
+\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad \cgg \vdash \setrecstars{t_k^\circ}{n_k} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \varw$}
 \noLine
-\UnaryInfC{$\cgg \vdash \setrecstars{t_k^\circ}{n_k} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \varw$}
-\noLine
-\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma\overline{(f_k : t_k)} \vdash e_k^\circ \Leftarrow  \shift{t_k} \rightsquigarrow C_{2k}, e_k$}
-\noLine
-\UnaryInfC{$C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{V_{\text{outer}}}{\overline{\getrecvar{t_k}{n_k}}}{\overline{t_k}}{\overline{e_k}}$}
+\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma\overline{(f_k : t_k)} \vdash e_k^\circ \Leftarrow  \shift{t_k} \rightsquigarrow C_{2k}, e_k \qquad C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{\overline{\getrecvar{t_k}{n_k}}}{\overline{t_k}}{\overline{e_k}}$}
 \RightLabel{\defrule{a-fix}}
 \UnaryInfC{$\cgg \vdash \fix{\langle n_k \rangle, m}{f_k}{t_k^\circ}{e_k} \rightsquigarrow C_4, \fix{\langle n_k \rangle, m}{f_k}{|t_k|^*}{e_k} \Rightarrow t_m$}
 \DisplayProof
 
 \hfill\break
 
-\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad V_{\text{outer}} = \mathcal{V}$}
+\AxiomC{$\cgg \vdash t_k^\circ \rightsquigarrow \_, \_ \Rightarrow \_ \qquad \cgg \vdash \setcorecstars{t_k^\circ} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \varw$}
 \noLine
-\UnaryInfC{$\cgg \vdash \setcorecstars{t_k^\circ} \rightsquigarrow C_{1k}, t_k \Rightarrow^* \varw$}
-\noLine
-\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma\overline{(f_k : t_k)} \vdash e_k^\circ \Leftarrow \shift{t_k} \rightsquigarrow C_{2k}, e_k$}
-\noLine
-\UnaryInfC{$C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{V_{\text{outer}}}{\overline{\getcorecvar{t_k}}}{\overline{t_k}}{\overline{e_k}}$}
+\UnaryInfC{$\bigcup_k C_{1k}, \Gamma_G, \Gamma\overline{(f_k : t_k)} \vdash e_k^\circ \Leftarrow \shift{t_k} \rightsquigarrow C_{2k}, e_k \qquad C_4 = \RecCheckLoop{\bigcup_k C_{2k}}{\overline{\getcorecvar{t_k}}}{\overline{t_k}}{\overline{e_k}}$}
 \RightLabel{\defrule{a-cofix}}
 \UnaryInfC{$\cgg \vdash \cofix{m}{f_k}{t_k^\circ}{e_k} \rightsquigarrow C_4, \cofix{m}{f_k}{|t_k|^*}{e_k} \Rightarrow t_m$}
 \DisplayProof

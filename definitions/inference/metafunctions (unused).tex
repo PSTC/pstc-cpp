@@ -10,6 +10,7 @@
     $\textsc{fresh*} : \mathbb{N}^+ \to \vec{P}$ & Produces given number of fresh position stage variables, putting them into both $\mathcal{V}$ and $\mathcal{P}$ \\
     $\textsc{inds} : \mathcal{I} \cup \mathcal{C} \to \mathbb{N}^+$ & Produces number of mutually-defined \coinductive types in definition to which given type or constructor belongs \\
     $\textsc{decompose} : T \times \mathbb{N}^0 \to \Delta \times T$ & Splits function type into given number of arguments and return type; can fail \\
+    $\textsc{caseStage} : \mathcal{I} \times S \times \mathcal{V} \to \mathbb{P}(S \times S)$ & Given \coinductive type $I_k$, stage annotation $s$, and stage variable $\upsilon_k$, returns $\set{s \sqsubseteq \hat{\upsilon}_k}$ if $I_k$ is inductive and $\set{\hat{\upsilon}_k \sqsubseteq s}$ if $I_k$ is coinductive \\
     $\textsc{shift} : T \to T$ & Replaces each position stage annotation by successor \\
     $\textsc{setRecStars} : T^\circ \times \mathbb{N}^+ \to T^*$ & Given index $n$, annotates $n$th argument type $I$ and all other argument and return types with same type $I$ with position annotations; can fail \\
     $\textsc{setCorecStars} : T^\circ \to T^*$ & Annotates return argument type $I$ and all other argument types with same type $I$ with position annotations; can fail \\
